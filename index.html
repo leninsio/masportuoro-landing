@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Más por tu Oro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="styles/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo"><img src="images/logoNavBar.png" alt=""></a>
+            <button class="hamburger-menu">☰</button>
+            <ul class="nav-links">
+                         
+               
+
+                <li><a href="#quienes-somos"><i class="fas fa-users nav-icon"></i>Quiénes Somos</a></li>
+                <li><a href="#servicios"><i class="fas fa-hand-holding-dollar nav-icon"></i>Servicios</a></li>
+                <li><a href="#calculadora"><i class="fas fa-calculator nav-icon"></i>Calculadora</a></li>
+                <li><a href="#proceso"><i class="fas fa-list-ol nav-icon"></i>Proceso</a></li>
+                <li><a href="#contacto"><i class="fas fa-phone nav-icon"></i>Contacto</a></li>
+
+                <button class="close-menu-btn" aria-label="Cerrar menú">
+                    <i class="fas fa-times"></i>
+           </button>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+			<!-- Se utiliza <picture> para servir el logo en formato webp y png según compatibilidad -->
+
+               
+                <picture>
+                    <!-- Opción principal: SVG (calidad vectorial) -->
+                 
+                    
+                    <!-- Opción de respaldo: WebP (formato optimizado) -->
+                    <source srcset="images/logo.webp" type="image/webp">
+                    
+                    <!-- Respaldo final: PNG (máxima compatibilidad) -->
+                    <img src="images/logo.png" alt="Logo Más por tu Oro">
+                </picture>
+
+            <p>Convierte tus objetos de valor en dinero al instante.</p>
+            <a href="#contacto" class="btn">Contáctanos ahora</a>
+        </div>
+    </header>
+
+    <section id="quienes-somos" class="section">
+        <span class="section-icon"><i class="fas fa-handshake"></i></span>
+        <h2>Soluciones financieras rápidas y seguras.</h2>
+        <p>En **Más por tu Oro**, entendemos que a veces necesitas liquidez inmediata. Te ofrecemos préstamos con garantía para que obtengas el dinero que necesitas sin trámites complicados y con la mayor confianza. Tu tranquilidad es nuestra prioridad.</p>
+    </section>
+
+    <section id="servicios" class="section bg-dark fade-in-section">
+        <h2>Empeña tus bienes, sin límite de tiempo.</h2>
+        <p>Aceptamos una amplia variedad de artículos de valor como garantía. El interés se calcula de acuerdo con el monto del préstamo y puedes abonar a capital cuando lo desees.</p>
+        <div class="services-list">
+            <div class="service-item">
+                <i class="fas fa-car-side service-icon"></i>
+                <h3>Vehículos</h3>
+                <p>Autos, motos, lanchas y yates.</p>
+            </div>
+            <div class="service-item">
+                <i class="fas fa-building service-icon"></i>
+                <h3>Inmuebles</h3>
+                <p>Locales comerciales, oficinas.</p>
+            </div>
+            <div class="service-item">
+                <i class="fas fa-gem service-icon"></i>
+                <h3>Joyas y metales preciosos</h3>
+                <p>Brillantes, prendas, oro,plata.</p>
+            </div>
+            <div class="service-item">
+                <i class="fas fa-stopwatch service-icon"></i>
+                <h3>Artículos de lujo</h3>
+                <p>Relojes y celulares de alta gama.</p>
+            </div>
+            <div class="service-item">
+                <i class="fas fa-laptop-code service-icon"></i>
+                <h3>Tecnología</h3>
+                <p>Laptops, computadoras y consolas.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="calculadora" class="section fade-in-section">
+        <h2>¿Cuánto vale tu oro o plata hoy?</h2>
+        <p>Calcula el valor estimado de tus joyas y metales preciosos al instante. Utiliza nuestra calculadora para tener una idea de cuánto podrías obtener.</p>
+        <div class="calculator-container">
+            <label for="metal-type">Tipo de Metal:</label>
+            <select id="metal-type">
+                <option value="oro">Oro</option>
+                <option value="plata">Plata</option>
+            </select>
+            <label for="peso">Peso (gramos):</label>
+            <input type="number" id="peso" placeholder="Ej: 10">
+            <label for="pureza">Pureza:</label>
+            <select id="pureza">
+            </select>
+            <button id="calculate-btn">Calcular</button>
+            <div class="result-box">
+                <p>Valor estimado:</p>
+                <h3 id="result">$0.00</h3>
+            </div>
+        </div>
+        <p style="margin-top: 20px; color: #FFD700; text-align: center; font-size: 1em;">
+            <strong>Nota:</strong> El valor mostrado es solo una estimación y puede variar según la evaluación final y las condiciones del mercado.
+        </p>
+    </section>
+    
+    <section id="proceso" class="section fade-in-section">
+        <h2>Un proceso simple y rápido</h2>
+        <p>Te explicamos en 3 sencillos pasos cómo convertir tus artículos de valor en dinero al instante.</p>
+        <div class="process-container">
+            <div class="process-step">
+                <div class="step-icon">
+                    <i class="fas fa-search-dollar"></i>
+                </div>
+                <h3>Paso 1: Tasación sin costo</h3>
+                <p>Trae tus artículos a nuestra sucursal. Nuestro equipo de expertos los evaluará de manera profesional y honesta, garantizando la mejor oferta del mercado.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>Paso 2: Acepta nuestra oferta</h3>
+                <p>Una vez que estés de acuerdo con la oferta, firmaremos un contrato claro y transparente. Tu artículo queda en resguardo seguro y obtienes tu dinero al momento.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <h3>Paso 3: Recupera tus artículos</h3>
+                <p>Cuando estés listo, solo tienes que pagar el préstamo y los intereses acumulados para recuperar tus bienes. Si lo necesitas, puedes extender el plazo de pago.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contacto" class="section fade-in-section">
+        <h2>Contáctanos</h2>
+        <p>¿Tienes preguntas? Envíanos un mensaje o visítanos en nuestra ubicación.</p>
+        <div class="contact-container">
+            <div class="contact-form-box">
+                <h3>Envíanos un mensaje</h3>
+                <form id="contact-form">
+                    <label for="name">Nombre:</label>
+                    <input type="text" id="name" name="name" required>
+                    <label for="email">Correo Electrónico:</label>
+                    <input type="email" id="email" name="email" required>
+                    <label for="message">Mensaje:</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                    <button type="submit">Enviar Mensaje</button>
+                </form>
+                <picture>
+                    <source srcset="images/tienda.webp" type="image/webp">
+                    <img src="images/tienda.jpg" alt="Descripción de la imagen" class="form-image">
+                </picture>
+            </div>
+            <div class="contact-info-box">
+                <h3>Información de Contacto</h3>
+                <div class="info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>Av. Francisco de Miranda, Multicentro Empresarial del Este PB local 13, Torre Miranda, Caracas 1060, Distrito Capital</p>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <p>+58 414-1292162</p>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-envelope"></i>
+                    <p>contacto@masportuoro.com</p>
+                </div>
+                <div class="map-container">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3923.1218569727025!2d-66.85658598817733!3d10.491059064346834!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c2a598765e4ee17%3A0xf6b4aadac13f4ec9!2sM%C3%A1s%20por%20tu%20oro!5e0!3m2!1ses-419!2sus!4v1755647691729!5m2!1ses-419!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section footer-contact">
+                <h4>Contáctanos</h4>
+                <p><i class="fas fa-map-marker-alt"></i> Av. Francisco de Miranda, Multicentro Empresarial del Este</p>
+                <p><i class="fas fa-phone-alt"></i> +58 412-1546895</p>
+                <p><i class="fas fa-envelope"></i> masportuoro17c.a@gmail.com</p>
+            </div>
+            <div class="footer-section footer-links">
+                <h4>Enlaces Rápidos</h4>
+                <ul>
+                    <li><a href="#quienes-somos">Quiénes Somos</a></li>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#calculadora">Calculadora</a></li>
+                    <li><a href="#proceso">Proceso</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-section footer-social">
+                <h4>Síguenos</h4>
+                <div class="social-icons">
+                    <!-- Enlace a Facebook -->
+                    <a href="https://www.facebook.com/profile.php?id=100063477851289" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <!-- Enlace a Instagram -->
+                    <a href="https://www.instagram.com/masportuoro/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <!-- Enlace a WhatsApp (con tu número de teléfono) -->
+                    <a href="https://wa.me/584121546895" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Más por tu Oro. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="scripts/precios.js"></script>
+    <script src="scripts/script.js"></script>
+</body>
+</html>
