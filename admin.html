@@ -22,7 +22,6 @@
         }
         /* Estilo para el cuadro de mensaje */
         #message-box {
-            display: none;
             position: fixed;
             top: 20px;
             left: 50%;
@@ -32,6 +31,13 @@
             font-weight: 600;
             z-index: 1000;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #message-box.show {
+            opacity: 1;
+            visibility: visible;
         }
     </style>
 </head>
@@ -40,10 +46,11 @@
     <!-- Contenedor principal de la aplicación -->
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl">
         <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Actualizador de Precios</h1>
+        <div id="status-message" class="mb-4 p-3 rounded-lg text-center" style="display: none;"></div>
         <p class="text-center text-sm text-gray-500 mb-4">
             Los precios se guardan en una base de datos en la nube y se comparten con todos.
         </p>
-
+        
         <!-- Formulario para la entrada de precios -->
         <div id="price-form" class="space-y-6">
             <!-- Sección Oro Nacional -->
@@ -107,7 +114,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración y variables globales proporcionadas por el entorno ---
@@ -119,28 +126,6 @@
         let db, auth, userId;
         const app = initializeApp(firebaseConfig);
 
-        async function initFirebase() {
-            try {
-                auth = getAuth(app);
-                // Si existe un token de autenticación, úsalo. Si no, inicia sesión anónimamente.
-                if (initialAuthToken) {
-                    const userCredential = await signInWithCustomToken(auth, initialAuthToken);
-                    userId = userCredential.user.uid;
-                } else {
-                    const userCredential = await signInAnonymously(auth);
-                    userId = userCredential.user.uid;
-                }
-                db = getFirestore(app);
-                console.log("Firebase inicializado y usuario autenticado con UID:", userId);
-                return true; // Devuelve true si la inicialización es exitosa
-            } catch (e) {
-                console.error("Error al inicializar Firebase:", e);
-                showMessageBox('Error al conectar con la base de datos.', false);
-                return false; // Devuelve false si hay un error
-            }
-        }
-
-        // --- Funciones de Utilidad ---
         /**
          * Muestra un mensaje en el cuadro de mensajes.
          * @param {string} message - El texto del mensaje.
@@ -148,20 +133,20 @@
          */
         function showMessageBox(message, isSuccess) {
             const messageBox = document.getElementById('message-box');
-            messageBox.classList.remove('hidden', 'bg-red-200', 'text-red-800', 'bg-green-200', 'text-green-800');
+            messageBox.textContent = message;
+            messageBox.classList.remove('bg-red-200', 'text-red-800', 'bg-green-200', 'text-green-800');
+            messageBox.classList.remove('hidden');
+
             if (isSuccess) {
                 messageBox.classList.add('bg-green-200', 'text-green-800');
             } else {
                 messageBox.classList.add('bg-red-200', 'text-red-800');
             }
-            messageBox.textContent = message;
-
-            // Muestra el cuadro con un ligero retraso para la transición
-            setTimeout(() => messageBox.style.display = 'block', 10);
             
-            // Oculta el mensaje después de 5 segundos
+            messageBox.classList.add('show');
+
             setTimeout(() => {
-                messageBox.style.display = 'none';
+                messageBox.classList.remove('show');
             }, 5000);
         }
 
@@ -181,68 +166,78 @@
             };
             const updateButton = document.getElementById('update-button');
 
-            // Inicializa Firebase y autentica al usuario
-            const isFirebaseReady = await initFirebase();
-            if (!isFirebaseReady) {
-                return;
-            }
-
-            // Define la referencia al documento en Firestore
-            const pricesDocRef = doc(db, `artifacts/${appId}/users/${userId}/prices/current_prices`);
-
-            // Escucha cambios en tiempo real en el documento de precios
-            onSnapshot(pricesDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const priceData = docSnap.data();
-                    // Llena los campos de entrada con los datos de la base de datos
-                    for (const key in inputs) {
-                        if (inputs[key] && priceData[key]) {
-                            inputs[key].value = priceData[key].toFixed(2);
-                        }
-                    }
-                    showMessageBox('Precios cargados exitosamente desde la base de datos.', true);
+            try {
+                auth = getAuth(app);
+                if (initialAuthToken) {
+                    const userCredential = await signInWithCustomToken(auth, initialAuthToken);
+                    userId = userCredential.user.uid;
                 } else {
-                    console.log("No se encontraron precios guardados.");
-                    showMessageBox('No se encontraron precios guardados en la base de datos.', false);
+                    const userCredential = await signInAnonymously(auth);
+                    userId = userCredential.user.uid;
                 }
-            }, (error) => {
-                console.error("Error al escuchar los precios:", error);
-                showMessageBox('Error al cargar los precios en tiempo real.', false);
-            });
+                db = getFirestore(app);
+                console.log("Firebase inicializado y usuario autenticado con UID:", userId);
+                showMessageBox('Conexión con la base de datos establecida.', true);
 
-            // Agrega un evento al botón para guardar los precios
-            updateButton.addEventListener('click', async () => {
-                const priceData = {};
-                let isValid = true;
+                // Define la referencia al documento en Firestore
+                const pricesDocRef = doc(db, `artifacts/${appId}/users/${userId}/prices/current_prices`);
 
-                // Valida los campos y crea el objeto de datos
-                for (const key in inputs) {
-                    const value = parseFloat(inputs[key].value);
-                    if (isNaN(value) || value <= 0) {
-                        showMessageBox(`Error: Por favor, ingrese un valor numérico válido y mayor que cero para el campo '${inputs[key].id}'.`, false);
-                        isValid = false;
-                        break;
+                // Escucha cambios en tiempo real en el documento de precios
+                onSnapshot(pricesDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const priceData = docSnap.data();
+                        // Llena los campos de entrada con los datos de la base de datos
+                        for (const key in inputs) {
+                            if (inputs[key] && priceData[key]) {
+                                inputs[key].value = priceData[key].toFixed(2);
+                            }
+                        }
+                    } else {
+                        console.log("No se encontraron precios guardados.");
+                        showMessageBox('No se encontraron precios guardados. Puedes añadir los primeros.', false);
                     }
-                    priceData[key] = value;
-                }
+                }, (error) => {
+                    console.error("Error al escuchar los precios:", error);
+                    showMessageBox('Error al cargar los precios en tiempo real. Por favor, revisa la consola para más detalles.', false);
+                });
 
-                if (!isValid) {
-                    return;
-                }
+                // Agrega un evento al botón para guardar los precios
+                updateButton.addEventListener('click', async () => {
+                    const priceData = {};
+                    let isValid = true;
 
-                // Agrega una marca de tiempo a los datos
-                priceData.lastUpdated = new Date().toISOString();
+                    // Valida los campos y crea el objeto de datos
+                    for (const key in inputs) {
+                        const value = parseFloat(inputs[key].value);
+                        if (isNaN(value) || value <= 0) {
+                            showMessageBox(`Error: Por favor, ingrese un valor numérico válido y mayor que cero para el campo '${inputs[key].id}'.`, false);
+                            isValid = false;
+                            break;
+                        }
+                        priceData[key] = value;
+                    }
 
-                // Guarda los datos en Firestore
-                try {
-                    // La función setDoc sobrescribe los datos si el documento ya existe
-                    await setDoc(pricesDocRef, priceData);
-                    showMessageBox('¡Precios actualizados con éxito en la base de datos!', true);
-                } catch (e) {
-                    console.error("Error al guardar los precios:", e);
-                    showMessageBox(`Error al guardar los precios: ${e.message}`, false);
-                }
-            });
+                    if (!isValid) {
+                        return;
+                    }
+
+                    // Agrega una marca de tiempo a los datos
+                    priceData.lastUpdated = new Date().toISOString();
+
+                    // Guarda los datos en Firestore
+                    try {
+                        // La función setDoc sobrescribe los datos si el documento ya existe
+                        await setDoc(pricesDocRef, priceData);
+                        showMessageBox('¡Precios actualizados con éxito en la base de datos!', true);
+                    } catch (e) {
+                        console.error("Error al guardar los precios:", e);
+                        showMessageBox(`Error al guardar los precios: ${e.message}`, false);
+                    }
+                });
+            } catch (e) {
+                console.error("Error al inicializar Firebase:", e);
+                showMessageBox('Error al conectar con la base de datos. Por favor, revisa la consola.', false);
+            }
         });
     </script>
 </body>
