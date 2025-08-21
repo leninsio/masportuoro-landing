@@ -3,257 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actualizar Precios con Firestore</title>
-    <!-- Incluye Tailwind CSS para un diseño limpio y responsivo -->
+    <title>Precios de Metales Preciosos</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        // Importa las funciones necesarias de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Referencias a los elementos del DOM
+        const app = document.getElementById('app');
+        const mainAppContainer = document.getElementById('main-app-container');
+        const pricesList = document.getElementById('prices-list');
+        const updateBtn = document.getElementById('update-btn');
+        const messageBox = document.getElementById('message-box');
+
+        let db;
+        let auth;
+        let pricesDocRef;
+
+        // ** Configuración de Firebase - Ingresada por el usuario **
+        // He insertado aquí la configuración que proporcionaste para evitar el error de carga.
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLBVToo80X3XQK3ohnC2un2UopNgh0Pb8",
+            authDomain: "masportuoro-9c58a.firebaseapp.com",
+            projectId: "masportuoro-9c58a",
+            storageBucket: "masportuoro-9c58a.firebasestorage.app",
+            messagingSenderId: "1088835945019",
+            appId: "1:1088835945019:web:01c875760c74708126121e",
+        };
+
+        // Función para mostrar mensajes en la interfaz
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.className = `p-4 mt-4 rounded-xl text-center shadow-lg ${type === 'error' ? 'bg-red-500 text-white' : 'bg-gray-200'}`;
+            messageBox.classList.remove('hidden');
+        }
+
+        // Función para inicializar Firebase con la configuración del usuario
+        async function initializeFirebase() {
+            try {
+                // Si ya está inicializado, no hagas nada
+                if (db) return;
+
+                const firebaseApp = initializeApp(firebaseConfig);
+                db = getFirestore(firebaseApp);
+                auth = getAuth(firebaseApp);
+
+                // Autenticación anónima para permitir el acceso a Firestore
+                await signInAnonymously(auth);
+                
+                // Muestra la aplicación principal
+                mainAppContainer.classList.remove('hidden');
+                showMessage('Conexión exitosa a Firebase.', 'info');
+
+                // Configura el listener de precios una vez que la autenticación sea exitosa
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        // El `__app_id` es una variable proporcionada por el entorno para la colaboración
+                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                        const userId = user.uid;
+                        // Usamos una ruta de documento única para el usuario y la aplicación
+                        pricesDocRef = doc(db, `artifacts/${appId}/users/${userId}/metales_preciosos`);
+                        setupPriceListener();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error al inicializar Firebase:", error);
+                showMessage(`Error de conexión: ${error.message}. Revisa la consola.`, 'error');
+            }
+        }
+
+        // Función para configurar el listener de datos en tiempo real de Firestore
+        function setupPriceListener() {
+            if (!pricesDocRef) return;
+
+            onSnapshot(pricesDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    let html = '';
+                    for (const metal in data) {
+                        html += `
+                            <div class="flex justify-between items-center bg-gray-100 p-4 mb-2 rounded-xl">
+                                <span class="font-semibold text-lg">${metal.charAt(0).toUpperCase() + metal.slice(1)}</span>
+                                <input type="number" id="${metal}-price" value="${data[metal]}" class="w-24 text-right p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500" />
+                            </div>
+                        `;
+                    }
+                    pricesList.innerHTML = html;
+                } else {
+                    // Si el documento no existe, lo creamos con valores iniciales
+                    const initialData = {
+                        oro: 1900,
+                        plata: 23,
+                        platino: 950
+                    };
+                    setDoc(pricesDocRef, initialData).then(() => {
+                        showMessage('Documento inicial creado en Firestore.', 'info');
+                    }).catch(error => {
+                        console.error('Error al crear el documento inicial:', error);
+                        showMessage(`Error: ${error.message}`, 'error');
+                    });
+                }
+            }, (error) => {
+                console.error("Error al escuchar los datos:", error);
+                showMessage(`Error al cargar los datos: ${error.message}`, 'error');
+            });
+        }
+
+        // Event listener para el botón de "Actualizar Precios"
+        updateBtn.addEventListener('click', async () => {
+            if (!pricesDocRef) {
+                showMessage('La base de datos no está inicializada. Por favor, conecta con tu configuración de Firebase.', 'error');
+                return;
+            }
+
+            const newPrices = {
+                oro: parseFloat(document.getElementById('oro-price').value),
+                plata: parseFloat(document.getElementById('plata-price').value),
+                platino: parseFloat(document.getElementById('platino-price').value)
+            };
+
+            try {
+                await updateDoc(pricesDocRef, newPrices);
+                showMessage('Precios actualizados exitosamente.', 'info');
+            } catch (error) {
+                console.error("Error al actualizar los precios:", error);
+                showMessage(`Error al actualizar: ${error.message}`, 'error');
+            }
+        });
+
+        // Inicia la aplicación al cargar la página
+        window.addEventListener('load', initializeFirebase);
+    </script>
     <style>
-        /* Define la fuente Inter */
         body {
             font-family: 'Inter', sans-serif;
-        }
-        /* Oculta los spinners para campos de entrada de números */
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-        /* Estilo para el cuadro de mensaje */
-        #message-box {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 1rem 2rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease-in-out;
-            opacity: 0;
-            visibility: hidden;
-        }
-        #message-box.show {
-            opacity: 1;
-            visibility: visible;
+            background-color: #f3f4f6;
+            color: #333;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-
-    <!-- Contenedor principal de la aplicación -->
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Actualizador de Precios</h1>
-        <p class="text-center text-sm text-gray-500 mb-4">
-            Los precios se guardan en una base de datos en la nube y se comparten con todos.
-        </p>
-
-        <!-- Formulario para la entrada de precios -->
-        <div id="price-form" class="space-y-6">
-            <!-- Sección Oro Nacional -->
-            <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Oro Nacional</h2>
-            <div class="flex flex-col">
-                <label for="oro-nacional-22k" class="text-gray-600 mb-2">Oro Nacional 22k (USD/gramo)</label>
-                <input type="number" id="oro-nacional-22k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-            <div class="flex flex-col">
-                <label for="oro-nacional-18k" class="text-gray-600 mb-2">Oro Nacional 18k (USD/gramo)</label>
-                <input type="number" id="oro-nacional-18k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-            <div class="flex flex-col">
-                <label for="oro-nacional-14k" class="text-gray-600 mb-2">Oro Nacional 14k (USD/gramo)</label>
-                <input type="number" id="oro-nacional-14k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-            <div class="flex flex-col">
-                <label for="oro-nacional-10k" class="text-gray-600 mb-2">Oro Nacional 10k (USD/gramo)</label>
-                <input type="number" id="oro-nacional-10k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-
-            <!-- Sección Oro Italiano -->
-            <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Oro Italiano</h2>
-            <div class="flex flex-col">
-                <label for="oro-italiano-18k" class="text-gray-600 mb-2">Oro Italiano 18k (USD/gramo)</label>
-                <input type="number" id="oro-italiano-18k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-            <div class="flex flex-col">
-                <label for="oro-italiano-14k" class="text-gray-600 mb-2">Oro Italiano 14k (USD/gramo)</label>
-                <input type="number" id="oro-italiano-14k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-            <div class="flex flex-col">
-                <label for="oro-italiano-10k" class="text-gray-600 mb-2">Oro Italiano 10k (USD/gramo)</label>
-                <input type="number" id="oro-italiano-10k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-
-            <!-- Sección Plata -->
-            <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Plata</h2>
-            <div class="flex flex-col">
-                <label for="plata-999" class="text-gray-600 mb-2">Plata 999 (USD/gramo)</label>
-                <input type="number" id="plata-999" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-            <div class="flex flex-col">
-                <label for="plata-925-900" class="text-gray-600 mb-2">Plata 925/900 (USD/gramo)</label>
-                <input type="number" id="plata-925-900" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-            <div class="flex flex-col">
-                <label for="plata-835-800" class="text-gray-600 mb-2">Plata 835/800 (USD/gramo)</label>
-                <input type="number" id="plata-835-800" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-            </div>
-
-            <button id="update-button" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">
-                Actualizar Precios
-            </button>
-        </div>
-
-        <!-- Sección para mostrar mensajes de estado -->
-        <div id="message-box" class="mt-6 text-center text-sm p-4 rounded-lg hidden transition-opacity duration-300 ease-in-out"></div>
-    </div>
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- PASO CRÍTICO: REEMPLAZA ESTO CON TU CONFIGURACIÓN DE FIREBASE ---
-        const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_AUTH_DOMAIN",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_STORAGE_BUCKET",
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: "YOUR_APP_ID"
-        };
-        // --- FIN DEL PASO CRÍTICO ---
-
-        // El ID de tu aplicación se usa para la ruta de la base de datos
-        const appId = firebaseConfig.appId;
-
-        // --- Variables de inicialización de Firebase ---
-        let db, auth;
-
-        /**
-         * Muestra un mensaje en el cuadro de mensaje.
-         * @param {string} message - El texto del mensaje.
-         * @param {boolean} isSuccess - True para un mensaje de éxito, false para un error.
-         */
-        function showMessageBox(message, isSuccess) {
-            const messageBox = document.getElementById('message-box');
-            messageBox.textContent = message;
-            messageBox.classList.remove('bg-red-200', 'text-red-800', 'bg-green-200', 'text-green-800');
-            messageBox.classList.remove('hidden');
-
-            if (isSuccess) {
-                messageBox.classList.add('bg-green-200', 'text-green-800');
-            } else {
-                messageBox.classList.add('bg-red-200', 'text-red-800');
-            }
-            
-            messageBox.classList.add('show');
-
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-            }, 5000);
-        }
+<body class="bg-gray-100 p-4 sm:p-8 flex items-center justify-center min-h-screen">
+    <div id="app" class="w-full max-w-2xl bg-white p-6 rounded-3xl shadow-2xl transition-all duration-300 ease-in-out">
         
-        // --- Lógica principal ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('DOM completamente cargado. Inicializando la aplicación...');
-            const inputs = {
-                'oro-nacional-22k': document.getElementById('oro-nacional-22k'),
-                'oro-nacional-18k': document.getElementById('oro-nacional-18k'),
-                'oro-nacional-14k': document.getElementById('oro-nacional-14k'),
-                'oro-nacional-10k': document.getElementById('oro-nacional-10k'),
-                'oro-italiano-18k': document.getElementById('oro-italiano-18k'),
-                'oro-italiano-14k': document.getElementById('oro-italiano-14k'),
-                'oro-italiano-10k': document.getElementById('oro-italiano-10k'),
-                'plata-999': document.getElementById('plata-999'),
-                'plata-925-900': document.getElementById('plata-925-900'),
-                'plata-835-800': document.getElementById('plata-835-800')
-            };
-            const updateButton = document.getElementById('update-button');
+        <!-- Contenedor para la aplicación principal -->
+        <div id="main-app-container">
+            <h1 class="text-3xl font-bold mb-6 text-center text-sky-700">Precios de Metales Preciosos</h1>
+            
+            <!-- Lista de precios generada por JavaScript -->
+            <div id="prices-list" class="space-y-4">
+                <p class="text-center text-gray-500">Cargando datos...</p>
+            </div>
+            
+            <!-- Botón para actualizar los precios -->
+            <div class="mt-8 flex justify-center">
+                <button id="update-btn" class="w-full sm:w-auto bg-sky-600 text-white py-3 px-8 rounded-xl shadow-lg hover:bg-sky-700 transition-colors duration-200 font-semibold">
+                    Actualizar Precios
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mensajes del sistema -->
+        <div id="message-box" class="hidden p-4 mt-4 rounded-xl text-center"></div>
 
-            try {
-                // Validación crítica de la configuración de Firebase
-                if (!firebaseConfig || Object.keys(firebaseConfig).length === 0 || firebaseConfig.apiKey === "YOUR_API_KEY") {
-                    throw new Error("La configuración de Firebase no se ha cargado correctamente. Por favor, completa los campos.");
-                }
-
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                console.log("Firebase inicializado. Intentando autenticación...");
-                await signInAnonymously(auth);
-                console.log("Autenticación anónima exitosa.");
-
-                // Define la referencia del documento público en la ruta correcta
-                const pricesDocRef = doc(db, 'precios', 'metales_preciosos');
-                console.log("Referencia de documento de Firestore creada:", pricesDocRef.path);
-
-                // Escucha los cambios en tiempo real en el documento de precios
-                onSnapshot(pricesDocRef, (docSnap) => {
-                    console.log("Recibiendo datos en tiempo real...");
-                    if (docSnap.exists()) {
-                        const priceData = docSnap.data();
-                        console.log("Precios recibidos:", priceData);
-                        // Rellena los campos de entrada con los datos de la base de datos
-                        for (const key in inputs) {
-                            if (inputs[key] && typeof priceData[key] === 'string') {
-                                // Extrae el valor numérico del string
-                                const value = parseFloat(priceData[key].replace(/[^0-9.]/g, ''));
-                                inputs[key].value = value;
-                            }
-                        }
-                        showMessageBox('Precios cargados con éxito.', true);
-                    } else {
-                        console.log("El documento de precios no existe. Se creará al guardar.");
-                        showMessageBox('No se encontraron precios guardados. Puedes añadir los primeros.', false);
-                    }
-                }, (error) => {
-                    console.error("Error en onSnapshot:", error);
-                    showMessageBox('Error al cargar los precios. Revisa la consola para más detalles.', false);
-                });
-
-                // Agrega un escuchador de eventos al botón para guardar precios
-                updateButton.addEventListener('click', async () => {
-                    console.log("Botón de actualizar precios presionado.");
-                    const priceData = {};
-                    let isValid = true;
-
-                    for (const key in inputs) {
-                        const value = parseFloat(inputs[key].value);
-                        if (isNaN(value) || value <= 0) {
-                            showMessageBox(`Error: Por favor, ingrese un valor numérico válido y mayor que cero para el campo '${inputs[key].id}'.`, false);
-                            isValid = false;
-                            break;
-                        }
-                        // Formatea el valor como una cadena de texto para que coincida con tu JSON original
-                        priceData[key] = `$${value.toFixed(2)} / gramo`;
-                    }
-
-                    if (!isValid) {
-                        return;
-                    }
-
-                    priceData.lastUpdated = new Date().toISOString();
-                    console.log("Datos para guardar:", priceData);
-
-                    try {
-                        await setDoc(pricesDocRef, priceData);
-                        console.log("Precios guardados exitosamente.");
-                        showMessageBox('¡Precios actualizados con éxito!', true);
-                    } catch (e) {
-                        console.error("Error al guardar precios:", e);
-                        showMessageBox(`Error al guardar: ${e.message}`, false);
-                    }
-                });
-            } catch (e) {
-                console.error("Fallo crítico en la inicialización:", e);
-                showMessageBox(`Error de conexión: ${e.message}. Revisa la consola.`, false);
-            }
-        });
-    </script>
+    </div>
 </body>
 </html>
