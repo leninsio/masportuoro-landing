@@ -4,11 +4,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const hamburgerMenu = document.querySelector('.hamburger-menu');
     const navLinks = document.querySelector('.nav-links');
     const closeMenuBtn = document.querySelector('.close-menu-btn');
+    // --- Lógica de la barra de navegación que se oculta al hacer scroll ---
+    const navbar = document.querySelector('.navbar');
+    let lastScrollY = window.scrollY;
+   
+
+
 
     const heroSection = document.querySelector('.hero'); // Sección Hero
     const sectionsToAnimate = document.querySelectorAll('.fade-in-section');
     
     const contactForm = document.getElementById('contact-form');
+
+
+     
+
+    // efecto smooth scroll
+    const navLinksAnchors = navLinks.querySelectorAll('a');
+    const heroBtnAnchor = document.querySelector('.hero-content .btn');
+    
+    // Pega este bloque de código después de las variables.
+    navLinksAnchors.forEach(link => {
+        link.addEventListener('click', function(event) {
+            smoothScroll.call(this, event); // Llama a la nueva función
+            // Cierra el menú en móviles si está abierto
+            if (window.innerWidth <= 768) {
+                navLinks.classList.remove('active');
+            }
+        });
+    });
+    
+    // Aplica el mismo evento al botón de la sección 'hero'
+    if (heroBtnAnchor) {
+        heroBtnAnchor.addEventListener('click', smoothScroll);
+    }
+
+  
 
 
     // --- Menú desplegable ---
@@ -36,6 +67,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     handleResize();
     window.addEventListener('resize', handleResize);
+
+
+
+    // Escuchar el evento de scroll en la ventana
+    window.addEventListener('scroll', () => {
+        // Si la posición actual de scroll es mayor que la anterior, significa que estamos bajando
+        if (window.scrollY > lastScrollY) {
+            // Añade la clase para ocultar la barra de navegación
+            navbar.classList.add('navbar-hidden');
+        } else {
+            // Si la posición actual es menor, estamos subiendo, así que mostramos la barra
+            navbar.classList.remove('navbar-hidden');
+        }
+        // Actualiza la última posición de scroll para la próxima comparación
+        lastScrollY = window.scrollY;
+    });
 
 
     // --- Lógica de la calculadora ---
@@ -185,3 +232,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+
+
+function smoothScroll(event) {
+    // Detiene el comportamiento de salto por defecto del navegador
+    event.preventDefault();
+
+    // Obtenemos el elemento objetivo a partir del hash (#id)
+    const targetId = this.getAttribute('href');
+    const targetElement = document.querySelector(targetId);
+
+    if (targetElement) {
+        // Obtenemos la posición actual y la posición del objetivo
+        const startPosition = window.pageYOffset;
+        const targetPosition = targetElement.getBoundingClientRect().top + startPosition;
+        const distance = targetPosition - startPosition;
+        const duration = 800; // Duración de la animación en milisegundos
+        let startTime = null;
+
+        // Función de animación para el desplazamiento
+        function animation(currentTime) {
+            if (startTime === null) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            // Usamos una función de easing para que el desplazamiento se sienta más natural
+            const ease = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+
+            window.scrollTo(0, startPosition + distance * ease);
+
+            if (timeElapsed < duration) {
+                requestAnimationFrame(animation);
+            } else {
+                // Opcional: actualizamos el hash de la URL después de la animación
+                history.pushState(null, '', targetId);
+            }
+        }
+
+        // Iniciamos la animación
+        requestAnimationFrame(animation);
+    }
+}

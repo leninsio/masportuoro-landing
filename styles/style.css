@@ -1,6 +1,9 @@
 /* Paleta de colores: #000000 (negro), #daa607 (dorado), #FFFFFF (blanco) */
+  
 
-/* Estilos Generales */
+
+
+
 body {
 	font-family: 'Poppins', sans-serif;
 	margin: 0;
@@ -26,6 +29,15 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
     -moz-appearance: textfield;
 }
+
+/*
+ * Sección de la barra de navegación
+ *
+ * Añade esta clase para manejar la transición de la barra al hacer scroll.
+ */
+
+  
+
 
 
 
@@ -93,6 +105,22 @@ input[type=number] {
 }
 
 
+.navbar {
+    /* Habilita una transición suave para la propiedad 'transform' */
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  /*
+   * Clase para ocultar la barra de navegación
+   *
+   * Cuando el usuario haga scroll hacia abajo, se le agregará esta clase a la barra de navegación
+   * para que se deslice fuera de la vista.
+   */
+  .navbar-hidden {
+    /* Mueve la barra de navegación 100% de su altura hacia arriba, ocultándola */
+    transform: translateY(-100%);
+  }
+
 
 
 .hamburger-menu {
@@ -129,7 +157,7 @@ display: none;
         left: 0;
         width: 100vw;
         max-width: 100vw;
-        height: 60%;
+        height: auto;
         background-color: rgba(0, 0, 0, 0.97);
         flex-direction: column;
         justify-content: flex-start;
