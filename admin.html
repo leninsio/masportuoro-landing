@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Actualizar Precios con Firestore</title>
-    <!-- Incluir Tailwind CSS para un diseño limpio y responsivo -->
+    <!-- Incluye Tailwind CSS para un diseño limpio y responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Define la fuente Inter */
@@ -50,7 +50,7 @@
         <p class="text-center text-sm text-gray-500 mb-4">
             Los precios se guardan en una base de datos en la nube y se comparten con todos.
         </p>
-        
+
         <!-- Formulario para la entrada de precios -->
         <div id="price-form" class="space-y-6">
             <!-- Sección Oro Nacional -->
@@ -180,7 +180,8 @@
                 showMessageBox('Conexión con la base de datos establecida.', true);
 
                 // Define la referencia al documento en Firestore
-                const pricesDocRef = doc(db, `artifacts/${appId}/users/${userId}/prices/current_prices`);
+                // Este documento será compartido por todos los usuarios de la app
+                const pricesDocRef = doc(db, `artifacts/${appId}/public/data/prices/current_prices`);
 
                 // Escucha cambios en tiempo real en el documento de precios
                 onSnapshot(pricesDocRef, (docSnap) => {
@@ -189,7 +190,7 @@
                         // Llena los campos de entrada con los datos de la base de datos
                         for (const key in inputs) {
                             if (inputs[key] && priceData[key]) {
-                                inputs[key].value = priceData[key].toFixed(2);
+                                inputs[key].value = priceData[key];
                             }
                         }
                     } else {
