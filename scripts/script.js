@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // efecto smooth scroll
     const navLinksAnchors = navLinks.querySelectorAll('a');
     const heroBtnAnchor = document.querySelector('.hero-content .btn');
+
     
     // Pega este bloque de código después de las variables.
     navLinksAnchors.forEach(link => {
@@ -70,19 +71,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // Escuchar el evento de scroll en la ventana
-    window.addEventListener('scroll', () => {
-        // Si la posición actual de scroll es mayor que la anterior, significa que estamos bajando
-        if (window.scrollY > lastScrollY) {
-            // Añade la clase para ocultar la barra de navegación
-            navbar.classList.add('navbar-hidden');
-        } else {
-            // Si la posición actual es menor, estamos subiendo, así que mostramos la barra
-            navbar.classList.remove('navbar-hidden');
-        }
-        // Actualiza la última posición de scroll para la próxima comparación
-        lastScrollY = window.scrollY;
-    });
+   window.addEventListener('scroll', () => {
+    const heroHeight = heroSection.offsetHeight;
+    if (window.scrollY > heroHeight && lastScrollY < window.scrollY) {
+        // Scrolling down and past the hero section
+        navbar.classList.add('navbar-hidden');
+    } else {
+        // Scrolling up or still within the hero section
+        navbar.classList.remove('navbar-hidden');
+    }
+    lastScrollY = window.scrollY;
+});
 
 
     // --- Lógica de la calculadora ---
