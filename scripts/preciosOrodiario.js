@@ -1,72 +1,53 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const priceDisplayContainer = document.getElementById('price-display-container');
-    const lastUpdatedElement = document.getElementById('last-updated');
 
-    // Function to show a temporary message box on the screen.
-    const showMessage = (message, isSuccess) => {
-        const messageBox = document.createElement('div');
-        messageBox.textContent = message;
-        messageBox.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-lg shadow-lg text-white transition-opacity duration-300 z-50';
-        messageBox.style.opacity = '0';
-        messageBox.style.pointerEvents = 'none';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        if (isSuccess) {
-            messageBox.classList.add('bg-green-600');
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBLBVToo80X3XQK3ohnC2un2UopNgh0Pb8",
+  authDomain: "masportuoro-9c58a.firebaseapp.com",
+  projectId: "masportuoro-9c58a",
+  storageBucket: "masportuoro-9c58a.appspot.com",
+  messagingSenderId: "1088835945019",
+  appId: "1:1088835945019:web:01c875760c74708126121e",
+  measurementId: "G-KH2VXZQSBW"
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const pricesDocRef = doc(db, "precios", "metales_preciosos");
+
+// Función para formatear precios
+function formatPrice(value) {
+  return `$${parseFloat(value).toFixed(2)}`;
+}
+
+// Esperar que el DOM esté cargado
+window.addEventListener('DOMContentLoaded', () => {
+  onSnapshot(pricesDocRef, (docSnap) => {
+    console.log("Snapshot recibido:", docSnap.exists(), docSnap.data());
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      document.querySelectorAll('p.price').forEach(p => {
+        const priceId = p.dataset.priceId;
+        if (data[priceId] !== undefined) {
+          p.textContent = formatPrice(data[priceId]);
         } else {
-            messageBox.classList.add('bg-red-600');
+          p.textContent = "N/A";
         }
+      });
 
-        document.body.appendChild(messageBox);
-        setTimeout(() => messageBox.style.opacity = '1', 10);
-        setTimeout(() => {
-            messageBox.style.opacity = '0';
-            setTimeout(() => messageBox.remove(), 300);
-        }, 5000);
-    };
-
-    // Initially, show the loading spinner.
-    if (loadingSpinner) loadingSpinner.classList.remove('hidden');
-
-    // Attempt to retrieve and parse price data from localStorage.
-    try {
-        const savedPrices = localStorage.getItem('priceData');
-        if (savedPrices) {
-            const priceData = JSON.parse(savedPrices);
-            
-            // Get all elements with the class 'price' that have a data-price-id attribute.
-            const priceElements = document.querySelectorAll('.price[data-price-id]');
-
-            priceElements.forEach(element => {
-                // Get the specific ID from the 'data-price-id' attribute.
-                const priceId = element.getAttribute('data-price-id');
-                
-                // Look up the value in the priceData object and update the text.
-                if (priceData.hasOwnProperty(priceId)) {
-                    element.textContent = `$${priceData[priceId].toFixed(2)} / gramo`;
-                }
-            });
-
-            // Display the last update time.
-            const lastUpdatedDate = new Date(priceData.lastUpdated);
-            if (lastUpdatedElement) {
-                 lastUpdatedElement.textContent = `Última actualización: ${lastUpdatedDate.toLocaleDateString()} a las ${lastUpdatedDate.toLocaleTimeString()}`;
-            }
-
-            // Hide the spinner and show the content.
-            if (loadingSpinner) loadingSpinner.classList.add('hidden');
-            if (priceDisplayContainer) priceDisplayContainer.classList.remove('hidden');
-            showMessage('Precios cargados exitosamente.', true);
-
-        } else {
-            // Hide the spinner and show an error message if no data is found.
-            if (loadingSpinner) loadingSpinner.classList.add('hidden');
-            showMessage('No se encontraron precios guardados en el almacenamiento local.', false);
-        }
-    } catch (e) {
-        // Hide the spinner and show an error message if an error occurs.
-        if (loadingSpinner) loadingSpinner.classList.add('hidden');
-        console.error("Error al cargar los precios: ", e);
-        showMessage('Error al cargar los precios. Datos corruptos o no encontrados.', false);
+      const now = new Date();
+      document.getElementById('last-updated').textContent = `Última actualización: ${now.toLocaleString('es-VE', { hour12: false })}`;
+    } else {
+      document.getElementById('last-updated').textContent = "Documento no existe.";
     }
+  }, (error) => {
+    console.error("Error al obtener precios:", error);
+    document.getElementById('last-updated').textContent = "Error al cargar precios.";
+  });
 });
+
+

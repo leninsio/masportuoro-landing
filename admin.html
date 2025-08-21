@@ -1,173 +1,464 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Precios de Metales Preciosos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module">
-        // Importa las funciones necesarias de Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Precios de Metales Preciosos</title>
+  <style>
+    :root {
+      --color-primary: #000;
+      --color-secondary: #fff;
+      --color-accent: #ffd700;
+      --color-bg: #0d0d0d;
+      --color-surface: #1a1a1a;
+      --color-input-bg: #2b2b2b;
+      --font-family: 'Inter', sans-serif;
+    }
 
-        // Referencias a los elementos del DOM
-        const app = document.getElementById('app');
-        const mainAppContainer = document.getElementById('main-app-container');
-        const pricesList = document.getElementById('prices-list');
-        const updateBtn = document.getElementById('update-btn');
-        const messageBox = document.getElementById('message-box');
+    body {
+      font-family: var(--font-family);
 
-        let db;
-        let auth;
-        let pricesDocRef;
+       background-image: url(images/heroprueba.webp);
+      color: var(--color-secondary);
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
 
-        // ** Configuración de Firebase - Ingresada por el usuario **
-        // He insertado aquí la configuración que proporcionaste para evitar el error de carga.
-        const firebaseConfig = {
-            apiKey: "AIzaSyBLBVToo80X3XQK3ohnC2un2UopNgh0Pb8",
-            authDomain: "masportuoro-9c58a.firebaseapp.com",
-            projectId: "masportuoro-9c58a",
-            storageBucket: "masportuoro-9c58a.firebasestorage.app",
-            messagingSenderId: "1088835945019",
-            appId: "1:1088835945019:web:01c875760c74708126121e",
-        };
+    #app {
+      width: 100%;
+      max-width: 48rem;
+      background-color: var(--color-surface);
+      padding: 2rem;
+      border-radius: 1.5rem;
+     
+      transition: all 0.3s ease-in-out;
+      border: 1px solid rgba(255, 219, 17, 0.5);
+    }
 
-        // Función para mostrar mensajes en la interfaz
-        function showMessage(message, type = 'info') {
-            messageBox.textContent = message;
-            messageBox.className = `p-4 mt-4 rounded-xl text-center shadow-lg ${type === 'error' ? 'bg-red-500 text-white' : 'bg-gray-200'}`;
-            messageBox.classList.remove('hidden');
-        }
+    #main-app-container.hidden {
+      display: none;
+    }
 
-        // Función para inicializar Firebase con la configuración del usuario
-        async function initializeFirebase() {
-            try {
-                // Si ya está inicializado, no hagas nada
-                if (db) return;
+    .heading {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      text-align: center;
+      color: var(--color-accent);
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
 
-                const firebaseApp = initializeApp(firebaseConfig);
-                db = getFirestore(firebaseApp);
-                auth = getAuth(firebaseApp);
+    .prices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
 
-                // Autenticación anónima para permitir el acceso a Firestore
-                await signInAnonymously(auth);
-                
-                // Muestra la aplicación principal
-                mainAppContainer.classList.remove('hidden');
-                showMessage('Conexión exitosa a Firebase.', 'info');
+    .loading-text {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+    }
 
-                // Configura el listener de precios una vez que la autenticación sea exitosa
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        // El `__app_id` es una variable proporcionada por el entorno para la colaboración
-                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                        const userId = user.uid;
-                        // Usamos una ruta de documento única para el usuario y la aplicación
-                        pricesDocRef = doc(db, `artifacts/${appId}/users/${userId}/metales_preciosos`);
-                        setupPriceListener();
-                    }
-                });
+    .metal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--color-input-bg);
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid #444;
+      box-shadow: inset 0 0 5px rgba(255, 215, 0, 0.1);
+    }
 
-            } catch (error) {
-                console.error("Error al inicializar Firebase:", error);
-                showMessage(`Error de conexión: ${error.message}. Revisa la consola.`, 'error');
-            }
-        }
+    .metal-label {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--color-secondary);
+      text-transform: capitalize;
+    }
 
-        // Función para configurar el listener de datos en tiempo real de Firestore
-        function setupPriceListener() {
-            if (!pricesDocRef) return;
+    .price-input {
+      width: 12rem;
+      text-align: right;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #666;
+      background-color: var(--color-surface);
+      color: var(--color-accent);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s ease-in-out;
+    }
 
-            onSnapshot(pricesDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    let html = '';
-                    for (const metal in data) {
-                        html += `
-                            <div class="flex justify-between items-center bg-gray-100 p-4 mb-2 rounded-xl">
-                                <span class="font-semibold text-lg">${metal.charAt(0).toUpperCase() + metal.slice(1)}</span>
-                                <input type="number" id="${metal}-price" value="${data[metal]}" class="w-24 text-right p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500" />
-                            </div>
-                        `;
-                    }
-                    pricesList.innerHTML = html;
-                } else {
-                    // Si el documento no existe, lo creamos con valores iniciales
-                    const initialData = {
-                        oro: 1900,
-                        plata: 23,
-                        platino: 950
-                    };
-                    setDoc(pricesDocRef, initialData).then(() => {
-                        showMessage('Documento inicial creado en Firestore.', 'info');
-                    }).catch(error => {
-                        console.error('Error al crear el documento inicial:', error);
-                        showMessage(`Error: ${error.message}`, 'error');
-                    });
-                }
-            }, (error) => {
-                console.error("Error al escuchar los datos:", error);
-                showMessage(`Error al cargar los datos: ${error.message}`, 'error');
-            });
-        }
+    .price-input:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+      background-color: var(--color-bg);
+    }
 
-        // Event listener para el botón de "Actualizar Precios"
-        updateBtn.addEventListener('click', async () => {
-            if (!pricesDocRef) {
-                showMessage('La base de datos no está inicializada. Por favor, conecta con tu configuración de Firebase.', 'error');
-                return;
-            }
+    .button-container {
+      margin-top: 2.5rem;
+      display: flex;
+      justify-content: center;
+    }
 
-            const newPrices = {
-                oro: parseFloat(document.getElementById('oro-price').value),
-                plata: parseFloat(document.getElementById('plata-price').value),
-                platino: parseFloat(document.getElementById('platino-price').value)
-            };
+    .update-button {
+      width: 100%;
+      background-color: var(--color-accent);
+      color: var(--color-primary);
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      font-size: 1.1rem;
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+      transition: all 0.3s ease-in-out;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
 
-            try {
-                await updateDoc(pricesDocRef, newPrices);
-                showMessage('Precios actualizados exitosamente.', 'info');
-            } catch (error) {
-                console.error("Error al actualizar los precios:", error);
-                showMessage(`Error al actualizar: ${error.message}`, 'error');
-            }
-        });
+    @media (min-width: 640px) {
+      .update-button {
+        width: auto;
+      }
+    }
 
-        // Inicia la aplicación al cargar la página
-        window.addEventListener('load', initializeFirebase);
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #333;
-        }
-    </style>
+    .update-button:hover {
+      background-color: #e6c200;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
+    }
+
+    .message-box {
+      padding: 1rem;
+      margin-top: 1.5rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .message-box.info {
+      background-color: #333;
+      color: var(--color-accent);
+      border: 1px solid var(--color-accent);
+    }
+
+    .message-box.error {
+      background-color: #c00;
+      color: #fff;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Precios de Metales Preciosos</title>
+  <style>
+    :root {
+      --color-primary: #000;
+      --color-secondary: #fff;
+      --color-accent: #ffd700;
+      --color-bg: #0d0d0d;
+      --color-surface: #1a1a1a;
+      --color-input-bg: #2b2b2b;
+      --font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--color-bg);
+      color: var(--color-secondary);
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 48rem;
+      background-color: var(--color-surface);
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
+      transition: all 0.3s ease-in-out;
+      border: 1px solid rgba(255, 215, 0, 0.1);
+    }
+
+    #main-app-container.hidden {
+      display: none;
+    }
+
+    .heading {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      text-align: center;
+      color: var(--color-accent);
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
+
+    .prices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .loading-text {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+    }
+
+    .metal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--color-input-bg);
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid #444;
+      box-shadow: inset 0 0 5px rgba(255, 215, 0, 0.1);
+    }
+
+    .metal-label {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--color-secondary);
+      text-transform: capitalize;
+    }
+
+    .price-input {
+      width: 12rem;
+      text-align: right;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #666;
+      background-color: var(--color-surface);
+      color: var(--color-accent);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .price-input:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+      background-color: var(--color-bg);
+    }
+
+    .button-container {
+      margin-top: 2.5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .update-button {
+      width: 100%;
+      background-color: var(--color-accent);
+      color: var(--color-primary);
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      font-size: 1.1rem;
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+      transition: all 0.3s ease-in-out;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    @media (min-width: 640px) {
+      .update-button {
+        width: auto;
+      }
+    }
+
+    .update-button:hover {
+      background-color: #e6c200;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
+    }
+
+    .message-box {
+      padding: 1rem;
+      margin-top: 1.5rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .message-box.info {
+      background-color: #333;
+      color: var(--color-accent);
+      border: 1px solid var(--color-accent);
+    }
+
+    .message-box.error {
+      background-color: #c00;
+      color: #fff;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-4 sm:p-8 flex items-center justify-center min-h-screen">
-    <div id="app" class="w-full max-w-2xl bg-white p-6 rounded-3xl shadow-2xl transition-all duration-300 ease-in-out">
-        
-        <!-- Contenedor para la aplicación principal -->
-        <div id="main-app-container">
-            <h1 class="text-3xl font-bold mb-6 text-center text-sky-700">Precios de Metales Preciosos</h1>
-            
-            <!-- Lista de precios generada por JavaScript -->
-            <div id="prices-list" class="space-y-4">
-                <p class="text-center text-gray-500">Cargando datos...</p>
-            </div>
-            
-            <!-- Botón para actualizar los precios -->
-            <div class="mt-8 flex justify-center">
-                <button id="update-btn" class="w-full sm:w-auto bg-sky-600 text-white py-3 px-8 rounded-xl shadow-lg hover:bg-sky-700 transition-colors duration-200 font-semibold">
-                    Actualizar Precios
-                </button>
-            </div>
-        </div>
-        
-        <!-- Mensajes del sistema -->
-        <div id="message-box" class="hidden p-4 mt-4 rounded-xl text-center"></div>
-
+<body>
+  <div id="app">
+    <div id="main-app-container" class="hidden">
+      <h1 class="heading">Precios de Metales Preciosos</h1>
+      <div id="prices-list" class="prices-list">
+        <p class="loading-text">Cargando datos...</p>
+      </div>
+      <div class="button-container">
+        <button id="update-btn" class="update-button">
+          Actualizar Precios
+        </button>
+      </div>
     </div>
+    <div id="message-box" class="message-box">Cargando...</div>
+  </div>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBLBVToo80X3XQK3ohnC2un2UopNgh0Pb8",
+      authDomain: "masportuoro-9c58a.firebaseapp.com",
+      projectId: "masportuoro-9c58a",
+      storageBucket: "masportuoro-9c58a.appspot.com",
+      messagingSenderId: "1088835945019",
+      appId: "1:1088835945019:web:01c875760c74708126121e",
+      measurementId: "G-KH2VXZQSBW"
+    };
+
+    const mainAppContainer = document.getElementById('main-app-container');
+    const pricesList = document.getElementById('prices-list');
+    const messageBox = document.getElementById('message-box');
+    const updateBtn = document.getElementById('update-btn');
+
+    let db, auth, pricesDocRef;
+    const inputElements = {};
+
+    function showMessage(message, type = 'info') {
+      messageBox.textContent = message;
+      messageBox.className = `message-box ${type}`;
+      messageBox.classList.remove('hidden');
+
+      setTimeout(() => {
+        messageBox.classList.add('hidden');
+      }, 2000);
+    }
+
+    function formatPrice(value) {
+      return `$${parseFloat(value).toFixed(2)}`;
+    }
+
+    function setupPriceListener() {
+      if (!pricesDocRef) return;
+
+      onSnapshot(pricesDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          // Obtiene las claves (nombres de metales) y las ordena alfabéticamente
+          const sortedMetals = Object.keys(data).sort();
+
+          if (Object.keys(inputElements).length === 0) {
+            pricesList.innerHTML = '';
+            // Itera sobre las claves ordenadas
+            for (const metal of sortedMetals) {
+              const container = document.createElement('div');
+              container.className = "metal-item";
+              const label = document.createElement('span');
+              label.className = "metal-label";
+              label.textContent = metal;
+              const input = document.createElement('input');
+              input.type = "text";
+              input.value = formatPrice(data[metal]);
+              input.className = "price-input";
+              container.appendChild(label);
+              container.appendChild(input);
+              pricesList.appendChild(container);
+              inputElements[metal] = input;
+            }
+          } else {
+            // Esto asegura que la actualización de valores también siga el orden
+            for (const metal of sortedMetals) {
+              if (inputElements[metal]) {
+                inputElements[metal].value = formatPrice(data[metal]);
+              }
+            }
+          }
+        } else {
+          const initialData = { "oro-nacional-18k": 50.00, "plata-999": 1.00 };
+          setDoc(pricesDocRef, initialData, { merge: true }).then(() => {
+            showMessage('Documento inicial creado en Firestore.', 'info');
+          });
+        }
+      }, (error) => {
+        console.error("Error al escuchar los datos:", error);
+        showMessage(`Error al cargar los datos: ${error.message}`, 'error');
+      });
+    }
+
+    async function setupFirebase() {
+      try {
+        const firebaseApp = initializeApp(firebaseConfig);
+        auth = getAuth(firebaseApp);
+        db = getFirestore(firebaseApp);
+        await signInAnonymously(auth);
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            pricesDocRef = doc(db, "precios", "metales_preciosos");
+            setupPriceListener();
+            mainAppContainer.classList.remove('hidden');
+            showMessage('Conexión exitosa a Firebase.', 'info');
+          } else {
+            showMessage('No se pudo autenticar al usuario.', 'error');
+          }
+        });
+      } catch (error) {
+        console.error("Error al configurar Firebase:", error);
+        showMessage(`Error de conexión: ${error.message}`, 'error');
+      }
+    }
+
+    updateBtn.addEventListener('click', async () => {
+      if (!pricesDocRef) {
+        showMessage('La base de datos no está lista. Por favor, espera.', 'error');
+        return;
+      }
+      const newPrices = {};
+      for (const metal in inputElements) {
+        const raw = inputElements[metal].value.replace(/[^0-9.]/g, '');
+        const num = parseFloat(raw);
+        if (!isNaN(num)) newPrices[metal] = num;
+      }
+      try {
+        await updateDoc(pricesDocRef, newPrices);
+        showMessage('Todos los precios actualizados exitosamente.', 'info');
+      } catch (error) {
+        console.error("Error al actualizar:", error);
+        showMessage(`Error al actualizar: ${error.message}`, 'error');
+      }
+    });
+
+    window.addEventListener('load', setupFirebase);
+  </script>
 </body>
 </html>
