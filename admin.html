@@ -46,7 +46,6 @@
     <!-- Contenedor principal de la aplicación -->
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl">
         <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Actualizador de Precios</h1>
-        <div id="status-message" class="mb-4 p-3 rounded-lg text-center" style="display: none;"></div>
         <p class="text-center text-sm text-gray-500 mb-4">
             Los precios se guardan en una base de datos en la nube y se comparten con todos.
         </p>
@@ -114,17 +113,17 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración y variables globales proporcionadas por el entorno ---
+        // Se añade una validación para asegurar que estas variables existen.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- Inicialización de Firebase ---
-        let db, auth, userId;
-        const app = initializeApp(firebaseConfig);
+        let db, auth;
 
         /**
          * Muestra un mensaje en el cuadro de mensajes.
@@ -149,9 +148,10 @@
                 messageBox.classList.remove('show');
             }, 5000);
         }
-
+        
         // --- Lógica Principal ---
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('DOM completamente cargado. Iniciando aplicación...');
             const inputs = {
                 'oro-nacional-22k': document.getElementById('oro-nacional-22k'),
                 'oro-nacional-18k': document.getElementById('oro-nacional-18k'),
@@ -167,47 +167,57 @@
             const updateButton = document.getElementById('update-button');
 
             try {
-                auth = getAuth(app);
-                if (initialAuthToken) {
-                    const userCredential = await signInWithCustomToken(auth, initialAuthToken);
-                    userId = userCredential.user.uid;
-                } else {
-                    const userCredential = await signInAnonymously(auth);
-                    userId = userCredential.user.uid;
+                // Validación crítica de la configuración de Firebase
+                if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+                    throw new Error("La configuración de Firebase no se ha cargado correctamente.");
                 }
-                db = getFirestore(app);
-                console.log("Firebase inicializado y usuario autenticado con UID:", userId);
-                showMessageBox('Conexión con la base de datos establecida.', true);
 
-                // Define la referencia al documento en Firestore
-                // Este documento será compartido por todos los usuarios de la app
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                console.log("Firebase inicializado. Intentando autenticar...");
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Autenticación exitosa con token personalizado.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Autenticación anónima exitosa.");
+                }
+
+                // Define la referencia al documento público
+                // Esto permite que todos los usuarios accedan y modifiquen los mismos precios.
                 const pricesDocRef = doc(db, `artifacts/${appId}/public/data/prices/current_prices`);
+                console.log("Referencia de documento de Firestore creada:", pricesDocRef.path);
 
                 // Escucha cambios en tiempo real en el documento de precios
                 onSnapshot(pricesDocRef, (docSnap) => {
+                    console.log("Recibiendo datos en tiempo real...");
                     if (docSnap.exists()) {
                         const priceData = docSnap.data();
+                        console.log("Precios recibidos:", priceData);
                         // Llena los campos de entrada con los datos de la base de datos
                         for (const key in inputs) {
-                            if (inputs[key] && priceData[key]) {
+                            if (inputs[key] && typeof priceData[key] === 'number') {
                                 inputs[key].value = priceData[key];
                             }
                         }
+                        showMessageBox('Precios cargados con éxito.', true);
                     } else {
-                        console.log("No se encontraron precios guardados.");
+                        console.log("El documento de precios no existe. Se creará al guardar.");
                         showMessageBox('No se encontraron precios guardados. Puedes añadir los primeros.', false);
                     }
                 }, (error) => {
-                    console.error("Error al escuchar los precios:", error);
-                    showMessageBox('Error al cargar los precios en tiempo real. Por favor, revisa la consola para más detalles.', false);
+                    console.error("Error en onSnapshot:", error);
+                    showMessageBox('Error al cargar los precios. Revisa la consola para más detalles.', false);
                 });
 
                 // Agrega un evento al botón para guardar los precios
                 updateButton.addEventListener('click', async () => {
+                    console.log("Botón de actualizar precios clicado.");
                     const priceData = {};
                     let isValid = true;
 
-                    // Valida los campos y crea el objeto de datos
                     for (const key in inputs) {
                         const value = parseFloat(inputs[key].value);
                         if (isNaN(value) || value <= 0) {
@@ -222,22 +232,21 @@
                         return;
                     }
 
-                    // Agrega una marca de tiempo a los datos
                     priceData.lastUpdated = new Date().toISOString();
+                    console.log("Datos a guardar:", priceData);
 
-                    // Guarda los datos en Firestore
                     try {
-                        // La función setDoc sobrescribe los datos si el documento ya existe
                         await setDoc(pricesDocRef, priceData);
-                        showMessageBox('¡Precios actualizados con éxito en la base de datos!', true);
+                        console.log("Precios guardados con éxito.");
+                        showMessageBox('¡Precios actualizados con éxito!', true);
                     } catch (e) {
                         console.error("Error al guardar los precios:", e);
-                        showMessageBox(`Error al guardar los precios: ${e.message}`, false);
+                        showMessageBox(`Error al guardar: ${e.message}`, false);
                     }
                 });
             } catch (e) {
-                console.error("Error al inicializar Firebase:", e);
-                showMessageBox('Error al conectar con la base de datos. Por favor, revisa la consola.', false);
+                console.error("Fallo crítico en la inicialización:", e);
+                showMessageBox(`Error de conexión: ${e.message}. Revisa la consola.`, false);
             }
         });
     </script>
