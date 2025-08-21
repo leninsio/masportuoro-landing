@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actualizar Precios Localmente</title>
-    <!-- Include Tailwind CSS for a clean and responsive design -->
+    <title>Actualizar Precios con Firestore</title>
+    <!-- Incluir Tailwind CSS para un diseño limpio y responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Define the Inter font */
+        /* Define la fuente Inter */
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Hide the spinners for number input fields */
+        /* Oculta los spinners para campos de entrada de números */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -20,7 +20,7 @@
         input[type="number"] {
             -moz-appearance: textfield;
         }
-        /* Custom message box for alerts */
+        /* Estilo para el cuadro de mensaje */
         #message-box {
             display: none;
             position: fixed;
@@ -37,13 +37,16 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <!-- Main application container -->
+    <!-- Contenedor principal de la aplicación -->
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl">
         <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Actualizador de Precios</h1>
+        <p class="text-center text-sm text-gray-500 mb-4">
+            Los precios se guardan en una base de datos en la nube y se comparten con todos.
+        </p>
 
-        <!-- Form for price inputs -->
+        <!-- Formulario para la entrada de precios -->
         <div id="price-form" class="space-y-6">
-            <!-- National Gold Section -->
+            <!-- Sección Oro Nacional -->
             <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Oro Nacional</h2>
             <div class="flex flex-col">
                 <label for="oro-nacional-22k" class="text-gray-600 mb-2">Oro Nacional 22k (USD/gramo)</label>
@@ -62,7 +65,7 @@
                 <input type="number" id="oro-nacional-10k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
             </div>
 
-            <!-- Italian Gold Section -->
+            <!-- Sección Oro Italiano -->
             <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Oro Italiano</h2>
             <div class="flex flex-col">
                 <label for="oro-italiano-18k" class="text-gray-600 mb-2">Oro Italiano 18k (USD/gramo)</label>
@@ -77,7 +80,7 @@
                 <input type="number" id="oro-italiano-10k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
             </div>
 
-            <!-- Silver Section -->
+            <!-- Sección Plata -->
             <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Plata</h2>
             <div class="flex flex-col">
                 <label for="plata-999" class="text-gray-600 mb-2">Plata 999 (USD/gramo)</label>
@@ -97,26 +100,51 @@
             </button>
         </div>
 
-        <!-- Section to display status messages -->
+        <!-- Sección para mostrar mensajes de estado -->
         <div id="message-box" class="mt-6 text-center text-sm p-4 rounded-lg hidden transition-opacity duration-300 ease-in-out"></div>
     </div>
 
-    <script>
-        // --- Security Check: Check for the secret key in the URL ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const secretKey = urlParams.get('key');
-        const correctKey = 'Leones.17'; // IMPORTANT: Cambia esta clave por una que sea difícil de adivinar.
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        if (secretKey !== correctKey) {
-            // Redirect to the main page if the key is incorrect or missing
-            window.location.href = 'index.html';
+        // --- Configuración y variables globales proporcionadas por el entorno ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- Inicialización de Firebase ---
+        let db, auth, userId;
+        const app = initializeApp(firebaseConfig);
+
+        async function initFirebase() {
+            try {
+                auth = getAuth(app);
+                // Si existe un token de autenticación, úsalo. Si no, inicia sesión anónimamente.
+                if (initialAuthToken) {
+                    const userCredential = await signInWithCustomToken(auth, initialAuthToken);
+                    userId = userCredential.user.uid;
+                } else {
+                    const userCredential = await signInAnonymously(auth);
+                    userId = userCredential.user.uid;
+                }
+                db = getFirestore(app);
+                console.log("Firebase inicializado y usuario autenticado con UID:", userId);
+                return true; // Devuelve true si la inicialización es exitosa
+            } catch (e) {
+                console.error("Error al inicializar Firebase:", e);
+                showMessageBox('Error al conectar con la base de datos.', false);
+                return false; // Devuelve false si hay un error
+            }
         }
 
-        // --- Utility Functions ---
+        // --- Funciones de Utilidad ---
         /**
-         * Displays a message in the message box.
-         * @param {string} message - The text of the message.
-         * @param {boolean} isSuccess - True for a success message, false for an error.
+         * Muestra un mensaje en el cuadro de mensajes.
+         * @param {string} message - El texto del mensaje.
+         * @param {boolean} isSuccess - Verdadero para un mensaje de éxito, falso para un error.
          */
         function showMessageBox(message, isSuccess) {
             const messageBox = document.getElementById('message-box');
@@ -128,17 +156,17 @@
             }
             messageBox.textContent = message;
 
-            // Show the box with a slight delay for transition
+            // Muestra el cuadro con un ligero retraso para la transición
             setTimeout(() => messageBox.style.display = 'block', 10);
             
-            // Hide the message after 5 seconds
+            // Oculta el mensaje después de 5 segundos
             setTimeout(() => {
                 messageBox.style.display = 'none';
             }, 5000);
         }
 
-        // --- Main Logic ---
-        document.addEventListener('DOMContentLoaded', () => {
+        // --- Lógica Principal ---
+        document.addEventListener('DOMContentLoaded', async () => {
             const inputs = {
                 'oro-nacional-22k': document.getElementById('oro-nacional-22k'),
                 'oro-nacional-18k': document.getElementById('oro-nacional-18k'),
@@ -153,32 +181,41 @@
             };
             const updateButton = document.getElementById('update-button');
 
-            // Load prices from localStorage on page load
-            const savedPrices = localStorage.getItem('priceData');
-            if (savedPrices) {
-                try {
-                    const priceData = JSON.parse(savedPrices);
-                    // Populate input fields with the saved data
+            // Inicializa Firebase y autentica al usuario
+            const isFirebaseReady = await initFirebase();
+            if (!isFirebaseReady) {
+                return;
+            }
+
+            // Define la referencia al documento en Firestore
+            const pricesDocRef = doc(db, `artifacts/${appId}/users/${userId}/prices/current_prices`);
+
+            // Escucha cambios en tiempo real en el documento de precios
+            onSnapshot(pricesDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const priceData = docSnap.data();
+                    // Llena los campos de entrada con los datos de la base de datos
                     for (const key in inputs) {
                         if (inputs[key] && priceData[key]) {
                             inputs[key].value = priceData[key].toFixed(2);
                         }
                     }
-                    showMessageBox('Precios cargados exitosamente desde el almacenamiento local.', true);
-                } catch (e) {
-                    console.error("Error al analizar los datos guardados: ", e);
-                    showMessageBox('Error al cargar los precios guardados.', false);
+                    showMessageBox('Precios cargados exitosamente desde la base de datos.', true);
+                } else {
+                    console.log("No se encontraron precios guardados.");
+                    showMessageBox('No se encontraron precios guardados en la base de datos.', false);
                 }
-            } else {
-                showMessageBox('No se encontraron precios guardados. Por favor, ingrese nuevos precios.', false);
-            }
+            }, (error) => {
+                console.error("Error al escuchar los precios:", error);
+                showMessageBox('Error al cargar los precios en tiempo real.', false);
+            });
 
-            // Event listener for the update button
-            updateButton.addEventListener('click', () => {
+            // Agrega un evento al botón para guardar los precios
+            updateButton.addEventListener('click', async () => {
                 const priceData = {};
                 let isValid = true;
 
-                // Validate inputs and create a data object
+                // Valida los campos y crea el objeto de datos
                 for (const key in inputs) {
                     const value = parseFloat(inputs[key].value);
                     if (isNaN(value) || value <= 0) {
@@ -193,13 +230,14 @@
                     return;
                 }
 
-                // Add a timestamp to the data
+                // Agrega una marca de tiempo a los datos
                 priceData.lastUpdated = new Date().toISOString();
 
-                // Save the data to localStorage as a JSON string
+                // Guarda los datos en Firestore
                 try {
-                    localStorage.setItem('priceData', JSON.stringify(priceData));
-                    showMessageBox('¡Precios actualizados con éxito en el almacenamiento local!', true);
+                    // La función setDoc sobrescribe los datos si el documento ya existe
+                    await setDoc(pricesDocRef, priceData);
+                    showMessageBox('¡Precios actualizados con éxito en la base de datos!', true);
                 } catch (e) {
                     console.error("Error al guardar los precios:", e);
                     showMessageBox(`Error al guardar los precios: ${e.message}`, false);
