@@ -116,8 +116,7 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- CRITICAL STEP: REPLACE THIS WITH YOUR ACTUAL FIREBASE CONFIG ---
-        // GO TO YOUR FIREBASE PROJECT SETTINGS > YOUR APPS AND COPY THE CONFIG OBJECT.
+        // --- PASO CRÍTICO: REEMPLAZA ESTO CON TU CONFIGURACIÓN DE FIREBASE ---
         const firebaseConfig = {
           apiKey: "YOUR_API_KEY",
           authDomain: "YOUR_AUTH_DOMAIN",
@@ -126,17 +125,18 @@
           messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
           appId: "YOUR_APP_ID"
         };
-        // You also need to manually set the appId for the Firestore path
-        const appId = "YOUR_APP_ID_FOR_FIRESTORE";
-        // --- END OF CRITICAL STEP ---
+        // --- FIN DEL PASO CRÍTICO ---
 
-        // --- Firebase initialization variables ---
+        // El ID de tu aplicación se usa para la ruta de la base de datos
+        const appId = firebaseConfig.appId;
+
+        // --- Variables de inicialización de Firebase ---
         let db, auth;
 
         /**
-         * Shows a message in the message box.
-         * @param {string} message - The message text.
-         * @param {boolean} isSuccess - True for a success message, false for an error.
+         * Muestra un mensaje en el cuadro de mensaje.
+         * @param {string} message - El texto del mensaje.
+         * @param {boolean} isSuccess - True para un mensaje de éxito, false para un error.
          */
         function showMessageBox(message, isSuccess) {
             const messageBox = document.getElementById('message-box');
@@ -157,9 +157,9 @@
             }, 5000);
         }
         
-        // --- Main Logic ---
+        // --- Lógica principal ---
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('DOM completely loaded. Initializing app...');
+            console.log('DOM completamente cargado. Inicializando la aplicación...');
             const inputs = {
                 'oro-nacional-22k': document.getElementById('oro-nacional-22k'),
                 'oro-nacional-18k': document.getElementById('oro-nacional-18k'),
@@ -175,7 +175,7 @@
             const updateButton = document.getElementById('update-button');
 
             try {
-                // Critical validation of Firebase config
+                // Validación crítica de la configuración de Firebase
                 if (!firebaseConfig || Object.keys(firebaseConfig).length === 0 || firebaseConfig.apiKey === "YOUR_API_KEY") {
                     throw new Error("La configuración de Firebase no se ha cargado correctamente. Por favor, completa los campos.");
                 }
@@ -184,40 +184,41 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                console.log("Firebase initialized. Attempting authentication...");
+                console.log("Firebase inicializado. Intentando autenticación...");
                 await signInAnonymously(auth);
-                console.log("Anonymous authentication successful.");
+                console.log("Autenticación anónima exitosa.");
 
-                // Define the public document reference
-                // This allows all users to access and modify the same prices.
-                const pricesDocRef = doc(db, `artifacts/${appId}/public/data/prices/current_prices`);
-                console.log("Firestore document reference created:", pricesDocRef.path);
+                // Define la referencia del documento público en la ruta correcta
+                const pricesDocRef = doc(db, 'precios', 'metales_preciosos');
+                console.log("Referencia de documento de Firestore creada:", pricesDocRef.path);
 
-                // Listen for real-time changes to the prices document
+                // Escucha los cambios en tiempo real en el documento de precios
                 onSnapshot(pricesDocRef, (docSnap) => {
-                    console.log("Receiving real-time data...");
+                    console.log("Recibiendo datos en tiempo real...");
                     if (docSnap.exists()) {
                         const priceData = docSnap.data();
-                        console.log("Prices received:", priceData);
-                        // Fill the input fields with the database data
+                        console.log("Precios recibidos:", priceData);
+                        // Rellena los campos de entrada con los datos de la base de datos
                         for (const key in inputs) {
-                            if (inputs[key] && typeof priceData[key] === 'number') {
-                                inputs[key].value = priceData[key];
+                            if (inputs[key] && typeof priceData[key] === 'string') {
+                                // Extrae el valor numérico del string
+                                const value = parseFloat(priceData[key].replace(/[^0-9.]/g, ''));
+                                inputs[key].value = value;
                             }
                         }
                         showMessageBox('Precios cargados con éxito.', true);
                     } else {
-                        console.log("Price document does not exist. It will be created on save.");
+                        console.log("El documento de precios no existe. Se creará al guardar.");
                         showMessageBox('No se encontraron precios guardados. Puedes añadir los primeros.', false);
                     }
                 }, (error) => {
-                    console.error("Error in onSnapshot:", error);
+                    console.error("Error en onSnapshot:", error);
                     showMessageBox('Error al cargar los precios. Revisa la consola para más detalles.', false);
                 });
 
-                // Add an event listener to the button to save prices
+                // Agrega un escuchador de eventos al botón para guardar precios
                 updateButton.addEventListener('click', async () => {
-                    console.log("Update prices button clicked.");
+                    console.log("Botón de actualizar precios presionado.");
                     const priceData = {};
                     let isValid = true;
 
@@ -228,7 +229,8 @@
                             isValid = false;
                             break;
                         }
-                        priceData[key] = value;
+                        // Formatea el valor como una cadena de texto para que coincida con tu JSON original
+                        priceData[key] = `$${value.toFixed(2)} / gramo`;
                     }
 
                     if (!isValid) {
@@ -236,19 +238,19 @@
                     }
 
                     priceData.lastUpdated = new Date().toISOString();
-                    console.log("Data to save:", priceData);
+                    console.log("Datos para guardar:", priceData);
 
                     try {
                         await setDoc(pricesDocRef, priceData);
-                        console.log("Prices successfully saved.");
+                        console.log("Precios guardados exitosamente.");
                         showMessageBox('¡Precios actualizados con éxito!', true);
                     } catch (e) {
-                        console.error("Error saving prices:", e);
+                        console.error("Error al guardar precios:", e);
                         showMessageBox(`Error al guardar: ${e.message}`, false);
                     }
                 });
             } catch (e) {
-                console.error("Critical initialization failure:", e);
+                console.error("Fallo crítico en la inicialización:", e);
                 showMessageBox(`Error de conexión: ${e.message}. Revisa la consola.`, false);
             }
         });
