@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Precios Localmente</title>
+    <!-- Include Tailwind CSS for a clean and responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define the Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Hide the spinners for number input fields */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        /* Custom message box for alerts */
+        #message-box {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main application container -->
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Actualizador de Precios</h1>
+
+        <!-- Form for price inputs -->
+        <div id="price-form" class="space-y-6">
+            <!-- National Gold Section -->
+            <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Oro Nacional</h2>
+            <div class="flex flex-col">
+                <label for="oro-nacional-22k" class="text-gray-600 mb-2">Oro Nacional 22k (USD/gramo)</label>
+                <input type="number" id="oro-nacional-22k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="oro-nacional-18k" class="text-gray-600 mb-2">Oro Nacional 18k (USD/gramo)</label>
+                <input type="number" id="oro-nacional-18k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="oro-nacional-14k" class="text-gray-600 mb-2">Oro Nacional 14k (USD/gramo)</label>
+                <input type="number" id="oro-nacional-14k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="oro-nacional-10k" class="text-gray-600 mb-2">Oro Nacional 10k (USD/gramo)</label>
+                <input type="number" id="oro-nacional-10k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+
+            <!-- Italian Gold Section -->
+            <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Oro Italiano</h2>
+            <div class="flex flex-col">
+                <label for="oro-italiano-18k" class="text-gray-600 mb-2">Oro Italiano 18k (USD/gramo)</label>
+                <input type="number" id="oro-italiano-18k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="oro-italiano-14k" class="text-gray-600 mb-2">Oro Italiano 14k (USD/gramo)</label>
+                <input type="number" id="oro-italiano-14k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="oro-italiano-10k" class="text-gray-600 mb-2">Oro Italiano 10k (USD/gramo)</label>
+                <input type="number" id="oro-italiano-10k" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+
+            <!-- Silver Section -->
+            <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Plata</h2>
+            <div class="flex flex-col">
+                <label for="plata-999" class="text-gray-600 mb-2">Plata 999 (USD/gramo)</label>
+                <input type="number" id="plata-999" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="plata-925-900" class="text-gray-600 mb-2">Plata 925/900 (USD/gramo)</label>
+                <input type="number" id="plata-925-900" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="plata-835-800" class="text-gray-600 mb-2">Plata 835/800 (USD/gramo)</label>
+                <input type="number" id="plata-835-800" placeholder="Escribe el precio..." class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+
+            <button id="update-button" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">
+                Actualizar Precios
+            </button>
+        </div>
+
+        <!-- Section to display status messages -->
+        <div id="message-box" class="mt-6 text-center text-sm p-4 rounded-lg hidden transition-opacity duration-300 ease-in-out"></div>
+    </div>
+
+    <script>
+        // --- Security Check: Check for the secret key in the URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const secretKey = urlParams.get('key');
+        const correctKey = 'Leones.17'; // IMPORTANT: Cambia esta clave por una que sea difícil de adivinar.
+
+        if (secretKey !== correctKey) {
+            // Redirect to the main page if the key is incorrect or missing
+            window.location.href = 'index.html';
+        }
+
+        // --- Utility Functions ---
+        /**
+         * Displays a message in the message box.
+         * @param {string} message - The text of the message.
+         * @param {boolean} isSuccess - True for a success message, false for an error.
+         */
+        function showMessageBox(message, isSuccess) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.classList.remove('hidden', 'bg-red-200', 'text-red-800', 'bg-green-200', 'text-green-800');
+            if (isSuccess) {
+                messageBox.classList.add('bg-green-200', 'text-green-800');
+            } else {
+                messageBox.classList.add('bg-red-200', 'text-red-800');
+            }
+            messageBox.textContent = message;
+
+            // Show the box with a slight delay for transition
+            setTimeout(() => messageBox.style.display = 'block', 10);
+            
+            // Hide the message after 5 seconds
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 5000);
+        }
+
+        // --- Main Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = {
+                'oro-nacional-22k': document.getElementById('oro-nacional-22k'),
+                'oro-nacional-18k': document.getElementById('oro-nacional-18k'),
+                'oro-nacional-14k': document.getElementById('oro-nacional-14k'),
+                'oro-nacional-10k': document.getElementById('oro-nacional-10k'),
+                'oro-italiano-18k': document.getElementById('oro-italiano-18k'),
+                'oro-italiano-14k': document.getElementById('oro-italiano-14k'),
+                'oro-italiano-10k': document.getElementById('oro-italiano-10k'),
+                'plata-999': document.getElementById('plata-999'),
+                'plata-925-900': document.getElementById('plata-925-900'),
+                'plata-835-800': document.getElementById('plata-835-800')
+            };
+            const updateButton = document.getElementById('update-button');
+
+            // Load prices from localStorage on page load
+            const savedPrices = localStorage.getItem('priceData');
+            if (savedPrices) {
+                try {
+                    const priceData = JSON.parse(savedPrices);
+                    // Populate input fields with the saved data
+                    for (const key in inputs) {
+                        if (inputs[key] && priceData[key]) {
+                            inputs[key].value = priceData[key].toFixed(2);
+                        }
+                    }
+                    showMessageBox('Precios cargados exitosamente desde el almacenamiento local.', true);
+                } catch (e) {
+                    console.error("Error al analizar los datos guardados: ", e);
+                    showMessageBox('Error al cargar los precios guardados.', false);
+                }
+            } else {
+                showMessageBox('No se encontraron precios guardados. Por favor, ingrese nuevos precios.', false);
+            }
+
+            // Event listener for the update button
+            updateButton.addEventListener('click', () => {
+                const priceData = {};
+                let isValid = true;
+
+                // Validate inputs and create a data object
+                for (const key in inputs) {
+                    const value = parseFloat(inputs[key].value);
+                    if (isNaN(value) || value <= 0) {
+                        showMessageBox(`Error: Por favor, ingrese un valor numérico válido y mayor que cero para el campo '${inputs[key].id}'.`, false);
+                        isValid = false;
+                        break;
+                    }
+                    priceData[key] = value;
+                }
+
+                if (!isValid) {
+                    return;
+                }
+
+                // Add a timestamp to the data
+                priceData.lastUpdated = new Date().toISOString();
+
+                // Save the data to localStorage as a JSON string
+                try {
+                    localStorage.setItem('priceData', JSON.stringify(priceData));
+                    showMessageBox('¡Precios actualizados con éxito en el almacenamiento local!', true);
+                } catch (e) {
+                    console.error("Error al guardar los precios:", e);
+                    showMessageBox(`Error al guardar los precios: ${e.message}`, false);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

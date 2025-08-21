@@ -360,7 +360,170 @@ display: none;
 
 
 
-/* Estilos de la Sección de Quienes Somos */
+/*seccion de precios /*
+
+  /* Estilos específicos para la nueva sección */
+
+div.fondo-secction{
+
+
+   /* Propiedades para la imagen de fondo */
+   background-image: url('../images/mercado.png'); /* URL de imagen de fondo */
+   background-size: cover; /* Cambiamos a cover para que llene el espacio, ahora que tenemos una altura mínima */
+   background-position: center; /* Centra la imagen */
+   background-repeat: no-repeat; /* Evita que se repita */
+   min-height: 100vh; /* ¡NUEVO! Asegura que la sección ocupe al menos el 100% de la altura de la pantalla */
+
+
+
+
+
+
+}
+  .market-prices {
+   
+
+    
+   
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 64rem;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.market-prices h2 {
+    color: #FFD700;
+    font-size: clamp(2em, 6vw, 4em);
+    margin: 0;
+      
+    
+}
+
+.market-prices h3 {
+    color: #FFD700;
+    
+    font-size: 2em;
+    margin: 0;
+      
+    
+}
+
+
+
+.market-prices p {
+    font-size: 1.125rem;
+    color: #FFFFFF;
+    margin-bottom: 2rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+.market-prices .section-title {
+    text-align: left;
+    margin: 2rem 0 1rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Contenedor de las tarjetas (Grid) */
+.prices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Estilos de las tarjetas de precio */
+.price-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.5); /* Borde dorado semi-transparente */
+    transition: transform 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.6); /* Gris oscuro semitransparente para las tarjetas */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s ease;
+}
+
+.price-card:hover {
+    transform: scale(1.05);
+    background-color: #000000;
+
+}
+
+
+
+/* Icono de la tarjeta */
+.price-card-icon {
+    padding: 0.75rem;
+    border-radius: 9999px;
+    margin-bottom: 1rem;
+    transition: transform 0.5s ease-in-out;
+}
+
+.price-card:hover .price-card-icon {
+    transform: rotateY(360deg);
+}
+
+.price-card.gold .price-card-icon {
+    background-color: #daa607;
+}
+
+.price-card.silver .price-card-icon {
+    background-color: #A0AEC0;
+}
+
+.price-card-icon i {
+    color: #fff;
+    font-size: 1.5rem;
+}
+
+.price-card h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #daa607;
+    margin-bottom: 0.25rem;
+}
+
+.price-card .price {
+    font-size: 1.125rem;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Media Queries para responsividad */
+@media (max-width: 640px) {
+    .market-prices {
+        width: 80%;
+    }
+    .market-prices h2 {
+        font-size: 1.75rem;
+    }
+    .market-prices p {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .price-card {
+        padding: 1rem;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Estilos adicionales para la sección Quiénes Somos */
 #quienes-somos {
