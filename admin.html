@@ -1,464 +1,337 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Precios de Metales Preciosos</title>
-  <style>
-    :root {
-      --color-primary: #000;
-      --color-secondary: #fff;
-      --color-accent: #ffd700;
-      --color-bg: #0d0d0d;
-      --color-surface: #1a1a1a;
-      --color-input-bg: #2b2b2b;
-      --font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      font-family: var(--font-family);
-
-       background-image: url(images/heroprueba.webp);
-      color: var(--color-secondary);
-      padding: 2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-
-    #app {
-      width: 100%;
-      max-width: 48rem;
-      background-color: var(--color-surface);
-      padding: 2rem;
-      border-radius: 1.5rem;
-     
-      transition: all 0.3s ease-in-out;
-      border: 1px solid rgba(255, 219, 17, 0.5);
-    }
-
-    #main-app-container.hidden {
-      display: none;
-    }
-
-    .heading {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      text-align: center;
-      color: var(--color-accent);
-      text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-    }
-
-    .prices-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .loading-text {
-      text-align: center;
-      color: #999;
-      font-style: italic;
-    }
-
-    .metal-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: var(--color-input-bg);
-      padding: 1rem 1.5rem;
-      border-radius: 0.75rem;
-      border: 1px solid #444;
-      box-shadow: inset 0 0 5px rgba(255, 215, 0, 0.1);
-    }
-
-    .metal-label {
-      font-weight: 600;
-      font-size: 1.2rem;
-      color: var(--color-secondary);
-      text-transform: capitalize;
-    }
-
-    .price-input {
-      width: 12rem;
-      text-align: right;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #666;
-      background-color: var(--color-surface);
-      color: var(--color-accent);
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.2s ease-in-out;
-    }
-
-    .price-input:focus {
-      border-color: var(--color-accent);
-      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
-      background-color: var(--color-bg);
-    }
-
-    .button-container {
-      margin-top: 2.5rem;
-      display: flex;
-      justify-content: center;
-    }
-
-    .update-button {
-      width: 100%;
-      background-color: var(--color-accent);
-      color: var(--color-primary);
-      padding: 1rem 2rem;
-      border-radius: 0.75rem;
-      font-size: 1.1rem;
-      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-      transition: all 0.3s ease-in-out;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-    }
-
-    @media (min-width: 640px) {
-      .update-button {
-        width: auto;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precios de Metales Preciosos</title>
+    <style>
+      :root {
+          --color-primary: #ffffff; /* Color principal (blanco) */
+          --color-secondary: #1a237e; /* Texto principal (azul oscuro) */
+          --color-accent: rgb(212, 82, 34); /* Color de acento (azul vibrante) */
+          --color-bg: #212121; /* Fondo principal (gris oscuro) */
+          --color-surface: #424242; /* Superficie de la tarjeta (gris un poco más claro) */
+          --color-item-bg: #bbdefb; /* Fondo de los ítems (azul claro) */
+          --color-input-bg: #fafafa; /* Fondo de los inputs (blanco) */
+          --font-family: 'Inter', sans-serif;
       }
-    }
 
-    .update-button:hover {
-      background-color: #e6c200;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
-    }
-
-    .message-box {
-      padding: 1rem;
-      margin-top: 1.5rem;
-      border-radius: 0.75rem;
-      text-align: center;
-      font-weight: 500;
-    }
-
-    .message-box.info {
-      background-color: #333;
-      color: var(--color-accent);
-      border: 1px solid var(--color-accent);
-    }
-
-    .message-box.error {
-      background-color: #c00;
-      color: #fff;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Precios de Metales Preciosos</title>
-  <style>
-    :root {
-      --color-primary: #000;
-      --color-secondary: #fff;
-      --color-accent: #ffd700;
-      --color-bg: #0d0d0d;
-      --color-surface: #1a1a1a;
-      --color-input-bg: #2b2b2b;
-      --font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background-color: var(--color-bg);
-      color: var(--color-secondary);
-      padding: 2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-
-    #app {
-      width: 100%;
-      max-width: 48rem;
-      background-color: var(--color-surface);
-      padding: 2rem;
-      border-radius: 1.5rem;
-      box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
-      transition: all 0.3s ease-in-out;
-      border: 1px solid rgba(255, 215, 0, 0.1);
-    }
-
-    #main-app-container.hidden {
-      display: none;
-    }
-
-    .heading {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      text-align: center;
-      color: var(--color-accent);
-      text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-    }
-
-    .prices-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .loading-text {
-      text-align: center;
-      color: #999;
-      font-style: italic;
-    }
-
-    .metal-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: var(--color-input-bg);
-      padding: 1rem 1.5rem;
-      border-radius: 0.75rem;
-      border: 1px solid #444;
-      box-shadow: inset 0 0 5px rgba(255, 215, 0, 0.1);
-    }
-
-    .metal-label {
-      font-weight: 600;
-      font-size: 1.2rem;
-      color: var(--color-secondary);
-      text-transform: capitalize;
-    }
-
-    .price-input {
-      width: 12rem;
-      text-align: right;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #666;
-      background-color: var(--color-surface);
-      color: var(--color-accent);
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.2s ease-in-out;
-    }
-
-    .price-input:focus {
-      border-color: var(--color-accent);
-      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
-      background-color: var(--color-bg);
-    }
-
-    .button-container {
-      margin-top: 2.5rem;
-      display: flex;
-      justify-content: center;
-    }
-
-    .update-button {
-      width: 100%;
-      background-color: var(--color-accent);
-      color: var(--color-primary);
-      padding: 1rem 2rem;
-      border-radius: 0.75rem;
-      font-size: 1.1rem;
-      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-      transition: all 0.3s ease-in-out;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-    }
-
-    @media (min-width: 640px) {
-      .update-button {
-        width: auto;
+      body {
+          font-family: var(--font-family);
+          background-image: url(images/joyas.png);
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+         
+          color: var(--color-primary); /* Cambiado a blanco para mayor contraste */
+          padding: 2rem;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          margin: 0;
+          transition: background-color 0.3s ease-in-out;
       }
-    }
 
-    .update-button:hover {
-      background-color: #e6c200;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
-    }
+      #app {
+          width: 100%;
+          max-width: 48rem;
+           background-color: rgba(33, 33, 33, 0.85); /* Se agregó transparencia al fondo */
+          padding: 2rem;
+          border-radius: 1.5rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(0, 0, 0, 0.2);
+          transition: all 0.3s ease-in-out;
+         
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+      }
 
-    .message-box {
-      padding: 1rem;
-      margin-top: 1.5rem;
-      border-radius: 0.75rem;
-      text-align: center;
-      font-weight: 500;
-    }
+      #main-app-container.hidden {
+          display: none;
+      }
 
-    .message-box.info {
-      background-color: #333;
-      color: var(--color-accent);
-      border: 1px solid var(--color-accent);
-    }
+      .heading {
+          font-size: 2.5rem;
+          font-weight: 700;
+          margin-bottom: 2rem;
+          text-align: center;
+          color: var(--color-primary);
+          text-shadow: none; /* Sin sombra de texto */
+      }
 
-    .message-box.error {
-      background-color: #c00;
-      color: #fff;
-    }
+      .prices-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+      }
 
-    .hidden {
-      display: none;
-    }
+      .loading-text {
+          text-align: center;
+          color: #ccc; /* Ajustado para mejor visibilidad en fondo oscuro */
+          font-style: italic;
+      }
+
+      .metal-item {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          background-color: var(--color-accent); /* Fondo ahora del mismo color que el botón */
+          padding: 1rem 1.5rem;
+          border-radius: 0.75rem;
+          
+          box-shadow: none;
+      }
+      
+      @media (min-width: 640px) {
+          .metal-item {
+              flex-direction: row;
+              justify-content: space-between;
+              align-items: center;
+          }
+      }
+
+      .metal-label {
+          font-weight: 600;
+          font-size: 1.2rem;
+          color: var(--color-primary); /* Texto ahora blanco para mayor contraste */
+          text-transform: capitalize;
+          margin-bottom: 0.5rem;
+      }
+
+      .price-input {
+          width: 100%;
+          text-align: left;
+          padding: 0.75rem 1rem;
+          border-radius: 0.5rem;
+          border: 1px solid #778899;
+          background-color: var(--color-input-bg);
+          color: var(--color-accent);
+          font-size: 1rem;
+          outline: none;
+          transition: all 0.2s ease-in-out;
+          box-sizing: border-box;
+          color: #212121;
+      }
+      
+      @media (min-width: 640px) {
+          .price-input {
+              width: 12rem;
+              text-align: right;
+          }
+      }
+
+      .price-input:focus {
+          border-color: var(--color-accent);
+          box-shadow: 0 0 0 3px rgba(41, 98, 255, 0.3);
+          background-color: var(--color-input-bg);
+      }
+
+      .button-container {
+          margin-top: 2.5rem;
+          display: flex;
+          justify-content: center;
+      }
+
+      .update-button {
+          width: 100%;
+          background-color: rgb(212, 82, 34);
+          color: var(--color-primary);
+          padding: 1rem 2rem;
+          border-radius: 0.75rem;
+          font-size: 1.1rem;
+          
+          transition: all 0.3s ease-in-out;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+      }
+
+      @media (min-width: 640px) {
+          .update-button {
+              width: auto;
+          }
+      }
+
+      .update-button:hover {
+        background-color: #eed812;
+        color: black; ;
+          transform: translateY(-2px);
+         
+      }
+
+      .message-box {
+          padding: 1rem;
+          margin-top: 1.5rem;
+          border-radius: 0.75rem;
+          text-align: center;
+          font-weight: 500;
+      }
+
+      .message-box.info {
+          background-color: #0a8f0a;
+          color: var(--color-primary);
+          
+      }
+
+      .message-box.error {
+          background-color: #c00;
+          color: #fff;
+      }
+
+      .hidden {
+          display: none;
+      }
   </style>
 </head>
 <body>
-  <div id="app">
-    <div id="main-app-container" class="hidden">
-      <h1 class="heading">Precios de Metales Preciosos</h1>
-      <div id="prices-list" class="prices-list">
-        <p class="loading-text">Cargando datos...</p>
-      </div>
-      <div class="button-container">
-        <button id="update-btn" class="update-button">
-          Actualizar Precios
-        </button>
-      </div>
+    <div id="app">
+        <div id="main-app-container" class="hidden">
+            <h1 class="heading">Precios de Oro y Plata</h1>
+            <div id="prices-list" class="prices-list">
+                <p class="loading-text">Cargando datos...</p>
+            </div>
+            <div class="button-container">
+                <button id="update-btn" class="update-button">
+                    Actualizar Precios
+                </button>
+            </div>
+        </div>
+        <div id="message-box" class="message-box">Cargando...</div>
     </div>
-    <div id="message-box" class="message-box">Cargando...</div>
-  </div>
-  
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBLBVToo80X3XQK3ohnC2un2UopNgh0Pb8",
-      authDomain: "masportuoro-9c58a.firebaseapp.com",
-      projectId: "masportuoro-9c58a",
-      storageBucket: "masportuoro-9c58a.appspot.com",
-      messagingSenderId: "1088835945019",
-      appId: "1:1088835945019:web:01c875760c74708126121e",
-      measurementId: "G-KH2VXZQSBW"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLBVToo80X3XQK3ohnC2un2UopNgh0Pb8",
+            authDomain: "masportuoro-9c58a.firebaseapp.com",
+            projectId: "masportuoro-9c58a",
+            storageBucket: "masportuoro-9c58a.appspot.com",
+            messagingSenderId: "1088835945019",
+            appId: "1:1088835945019:web:01c875760c74708126121e",
+            measurementId: "G-KH2VXZQSBW"
+        };
 
-    const mainAppContainer = document.getElementById('main-app-container');
-    const pricesList = document.getElementById('prices-list');
-    const messageBox = document.getElementById('message-box');
-    const updateBtn = document.getElementById('update-btn');
+        const mainAppContainer = document.getElementById('main-app-container');
+        const pricesList = document.getElementById('prices-list');
+        const messageBox = document.getElementById('message-box');
+        const updateBtn = document.getElementById('update-btn');
 
-    let db, auth, pricesDocRef;
-    const inputElements = {};
+        let db, auth, pricesDocRef;
+        const inputElements = {};
 
-    function showMessage(message, type = 'info') {
-      messageBox.textContent = message;
-      messageBox.className = `message-box ${type}`;
-      messageBox.classList.remove('hidden');
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.classList.remove('hidden');
 
-      setTimeout(() => {
-        messageBox.classList.add('hidden');
-      }, 2000);
-    }
-
-    function formatPrice(value) {
-      return `$${parseFloat(value).toFixed(2)}`;
-    }
-
-    function setupPriceListener() {
-      if (!pricesDocRef) return;
-
-      onSnapshot(pricesDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-
-          // Obtiene las claves (nombres de metales) y las ordena alfabéticamente
-          const sortedMetals = Object.keys(data).sort();
-
-          if (Object.keys(inputElements).length === 0) {
-            pricesList.innerHTML = '';
-            // Itera sobre las claves ordenadas
-            for (const metal of sortedMetals) {
-              const container = document.createElement('div');
-              container.className = "metal-item";
-              const label = document.createElement('span');
-              label.className = "metal-label";
-              label.textContent = metal;
-              const input = document.createElement('input');
-              input.type = "text";
-              input.value = formatPrice(data[metal]);
-              input.className = "price-input";
-              container.appendChild(label);
-              container.appendChild(input);
-              pricesList.appendChild(container);
-              inputElements[metal] = input;
-            }
-          } else {
-            // Esto asegura que la actualización de valores también siga el orden
-            for (const metal of sortedMetals) {
-              if (inputElements[metal]) {
-                inputElements[metal].value = formatPrice(data[metal]);
-              }
-            }
-          }
-        } else {
-          const initialData = { "oro-nacional-18k": 50.00, "plata-999": 1.00 };
-          setDoc(pricesDocRef, initialData, { merge: true }).then(() => {
-            showMessage('Documento inicial creado en Firestore.', 'info');
-          });
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 2000);
         }
-      }, (error) => {
-        console.error("Error al escuchar los datos:", error);
-        showMessage(`Error al cargar los datos: ${error.message}`, 'error');
-      });
-    }
 
-    async function setupFirebase() {
-      try {
-        const firebaseApp = initializeApp(firebaseConfig);
-        auth = getAuth(firebaseApp);
-        db = getFirestore(firebaseApp);
-        await signInAnonymously(auth);
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            pricesDocRef = doc(db, "precios", "metales_preciosos");
-            setupPriceListener();
-            mainAppContainer.classList.remove('hidden');
-            showMessage('Conexión exitosa a Firebase.', 'info');
-          } else {
-            showMessage('No se pudo autenticar al usuario.', 'error');
-          }
+        function formatPrice(value) {
+            return parseFloat(value).toFixed(2);
+        }
+
+        function setupPriceListener() {
+            if (!pricesDocRef) return;
+
+            onSnapshot(pricesDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const sortedMetals = Object.keys(data).sort();
+
+                    if (Object.keys(inputElements).length === 0) {
+                        pricesList.innerHTML = '';
+                        for (const metal of sortedMetals) {
+                            const container = document.createElement('div');
+                            container.className = "metal-item";
+                            const label = document.createElement('span');
+                            label.className = "metal-label";
+                            label.textContent = metal;
+                            const input = document.createElement('input');
+                            input.type = "text";
+                            input.inputMode = "decimal";
+                            input.pattern = "[0-9.]*";
+                            input.value = formatPrice(data[metal]);
+                            input.className = "price-input";
+                            
+                            // Event listener to restrict input to numbers and a single decimal point
+                            input.addEventListener('input', (e) => {
+                                let sanitizedValue = e.target.value.replace(/[^0-9.]/g, '');
+                                sanitizedValue = sanitizedValue.replace(/(\..*)\./g, '$1');
+                                e.target.value = sanitizedValue;
+                            });
+
+                            container.appendChild(label);
+                            container.appendChild(input);
+                            pricesList.appendChild(container);
+                            inputElements[metal] = input;
+                        }
+                    } else {
+                        for (const metal of sortedMetals) {
+                            if (inputElements[metal]) {
+                                inputElements[metal].value = formatPrice(data[metal]);
+                            }
+                        }
+                    }
+                } else {
+                    const initialData = { "oro-nacional-18k": 50.00, "plata-999": 1.00 };
+                    setDoc(pricesDocRef, initialData, { merge: true }).then(() => {
+                        showMessage('Documento inicial creado en Firestore.', 'info');
+                    });
+                }
+            }, (error) => {
+                console.error("Error al escuchar los datos:", error);
+                showMessage(`Error al cargar los datos: ${error.message}`, 'error');
+            });
+        }
+
+        async function setupFirebase() {
+            try {
+                const firebaseApp = initializeApp(firebaseConfig);
+                auth = getAuth(firebaseApp);
+                db = getFirestore(firebaseApp);
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        pricesDocRef = doc(db, "precios", "metales_preciosos");
+                        setupPriceListener();
+                        mainAppContainer.classList.remove('hidden');
+                        showMessage('Conexión exitosa a Firebase.', 'info');
+                    } else {
+                        showMessage('No se pudo autenticar al usuario.', 'error');
+                    }
+                });
+            } catch (error) {
+                console.error("Error al configurar Firebase:", error);
+                showMessage(`Error de conexión: ${error.message}`, 'error');
+            }
+        }
+
+        updateBtn.addEventListener('click', async () => {
+            if (!pricesDocRef) {
+                showMessage('La base de datos no está lista. Por favor, espera.', 'error');
+                return;
+            }
+            const newPrices = {};
+            for (const metal in inputElements) {
+                const raw = inputElements[metal].value.replace(/[^0-9.]/g, '');
+                const num = parseFloat(raw);
+                if (!isNaN(num)) newPrices[metal] = num;
+            }
+            try {
+                await updateDoc(pricesDocRef, newPrices);
+                showMessage('Todos los precios actualizados exitosamente.', 'info');
+            } catch (error) {
+                console.error("Error al actualizar:", error);
+                showMessage(`Error al actualizar: ${error.message}`, 'error');
+            }
         });
-      } catch (error) {
-        console.error("Error al configurar Firebase:", error);
-        showMessage(`Error de conexión: ${error.message}`, 'error');
-      }
-    }
 
-    updateBtn.addEventListener('click', async () => {
-      if (!pricesDocRef) {
-        showMessage('La base de datos no está lista. Por favor, espera.', 'error');
-        return;
-      }
-      const newPrices = {};
-      for (const metal in inputElements) {
-        const raw = inputElements[metal].value.replace(/[^0-9.]/g, '');
-        const num = parseFloat(raw);
-        if (!isNaN(num)) newPrices[metal] = num;
-      }
-      try {
-        await updateDoc(pricesDocRef, newPrices);
-        showMessage('Todos los precios actualizados exitosamente.', 'info');
-      } catch (error) {
-        console.error("Error al actualizar:", error);
-        showMessage(`Error al actualizar: ${error.message}`, 'error');
-      }
-    });
-
-    window.addEventListener('load', setupFirebase);
-  </script>
+        window.addEventListener('load', setupFirebase);
+    </script>
 </body>
 </html>

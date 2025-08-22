@@ -291,7 +291,8 @@ display: none;
 }
 .hero-content img {
     /* Aumenta este valor si quieres que el logo se vea más grande */
-    max-width: 600px; 
+    
+    max-width: 500px; 
     width: 100%; /* La imagen se ajustará al ancho del contenedor */
     height: auto; /* Mantiene la proporción */
    
@@ -310,7 +311,8 @@ display: none;
 @media screen and (max-width: 768px) {
     .hero-content img {
         /* Reducimos el tamaño en móviles para que se vea bien en pantallas pequeñas */
-        max-width: 80%; 
+        margin-top: 35px;
+        max-width: 75%; 
     }
 }
 
@@ -326,7 +328,8 @@ display: none;
 
 
 .hero-content p {
-	font-size: clamp(1em, 2.5vw, 1.5em);
+	font-size: clamp(0.9em, 2vw, 1.2em);
+    
 	margin-top: 10px;
 	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 	position: relative; /* Necesario para posicionar la línea pseudo-elemento */
@@ -386,7 +389,7 @@ div.fondo-secction{
     
    
     padding: 2.5rem;
-    width: 100%;
+    width: 90%;
     max-width: 64rem;
     text-align: center;
     margin: 0 auto;
@@ -401,13 +404,13 @@ div.fondo-secction{
 }
 
 .market-prices h3 {
-    color: #FFD700;
-    
-    font-size: 2em;
-    margin: 0;
-      
-    
+	color: #f8f07d;
+	font-size: 1.7em;
+	margin: 0;
+	position: relative;
 }
+
+
 
 
 
@@ -441,10 +444,11 @@ div.fondo-secction{
     justify-content: center;
     padding: 1.5rem;
     border-radius: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.5); /* Borde dorado semi-transparente */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    
     transition: transform 0.3s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.6); /* Gris oscuro semitransparente para las tarjetas */
+	background-color: rgba(26, 26, 26, 0.85); /* Gris oscuro semitransparente para las tarjetas, ahora con transparencia */
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s ease;
 }
 
@@ -644,6 +648,7 @@ div.fondo-secction{
     justify-content: center;
     flex-wrap: wrap;
     gap: 30px;
+    max-width: 95%;
 }
 
 /* Estilos del item de servicio */
